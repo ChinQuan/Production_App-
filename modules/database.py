@@ -2,6 +2,27 @@
 import psycopg2
 import streamlit as st
 import logging
+import psycopg2
+import streamlit as st
+
+def test_connection():
+    try:
+        conn = psycopg2.connect(
+            host=st.secrets["postgres"]["host"],
+            database=st.secrets["postgres"]["database"],
+            user=st.secrets["postgres"]["user"],
+            password=st.secrets["postgres"]["password"],
+            port=st.secrets["postgres"]["port"],
+            sslmode=st.secrets["postgres"]["sslmode"]
+        )
+        conn.close()
+        st.success("✅ Połączenie z bazą danych zakończone sukcesem!")
+    except psycopg2.OperationalError as e:
+        st.error(f"❌ Błąd połączenia: {e}")
+
+# Test połączenia przy uruchamianiu aplikacji
+test_connection()
+
 
 def get_connection():
     try:
