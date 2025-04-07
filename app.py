@@ -1,46 +1,16 @@
 import streamlit as st
+import pandas as pd
 import bcrypt
 from modules.user_management import show_user_management
 from modules.import_data import show_import_data
-from modules.form import show_form
-from modules.reports import show_reports
-from modules.charts import show_charts
 from modules.database import execute_query
 import psycopg2
+from datetime import datetime, timedelta
 
-# 🔑 Konfiguracja strony - MUSI być na samym początku!
+# 🔑 Page configuration
 st.set_page_config(page_title="Production Manager App", layout="wide")
 
-# Niestandardowy styl CSS
-st.markdown("""
-    <style>
-    .main-header {
-        font-size: 30px;
-        font-weight: bold;
-        color: #2E86C1;
-    }
-    .sidebar-title {
-        font-size: 22px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #1ABC9C;
-    }
-    .sidebar-text {
-        font-size: 16px;
-        color: #34495E;
-    }
-    .stButton>button {
-        background-color: #1ABC9C;
-        color: white;
-        border-radius: 10px;
-    }
-    .stButton>button:hover {
-        background-color: #16A085;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# ✅ Funkcja do nawiązywania połączenia z bazą danych
+# ✅ Function to establish a database connection
 def get_connection():
     return psycopg2.connect(
         host=st.secrets["postgres"]["host"],
@@ -51,7 +21,7 @@ def get_connection():
         sslmode=st.secrets["postgres"]["sslmode"]
     )
 
-# ✅ Funkcja logowania - poprawiona do współpracy z bcrypt
+# ✅ Login function
 def login(username, password):
     try:
         conn = get_connection()
@@ -69,42 +39,71 @@ def login(username, password):
         st.error(f"Błąd połączenia z bazą danych: {e}")
         return None
 
-# Inicjalizacja stanu sesji
+# Initialize session state
 if 'user' not in st.session_state:
     st.session_state.user = None
 
-menu = ["🏠 Home", "📄 Formularz", "📊 Raporty", "📈 Wykresy", "👥 Zarządzanie użytkownikami", "📥 Import danych"]
-choice = st.sidebar.selectbox("📋 Wybierz menu", menu)
+tabs = st.tabs(["Home", "Production Statistics", "User Management", "Import Data"])
 
-# 🌟 Interfejs logowania
-if st.session_state.user is None:
-    st.sidebar.markdown("<div class='sidebar-title'>🔑 Logowanie</div>", unsafe_allow_html=True)
-    username = st.sidebar.text_input("Nazwa użytkownika", key="login_username")
-    password = st.sidebar.text_input("Hasło", type="password", key="login_password")
+with tabs[0]:  # Home
+    st.header("📋 Home")
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.subheader("Dodaj nowe zlecenie")
+        task = st.text_input("Nazwa zadania")
+        date = st.date_input("Data dodania")
+        amount = st.number_input("Ilość uszczelek", min_value=0)
+        
+        if st.button("Dodaj zlecenie"):
+            if task and amount > 0:
+                # Save task to database
+                execute_query("INSERT INTO orders (task_name, date, amount) VALUES (%s, %s, %s)", (task, date, amount))
+                st.success("✅ Zlecenie zostało dodane.")
+            else:
+                st.error("❌ Wprowadź poprawne dane.")
 
-    if st.sidebar.button("Zaloguj"):
-        user = login(username, password)
-        if user:
-            st.session_state.user = user
-            st.sidebar.success(f"✅ Zalogowano jako: {user['Username']} (Rola: {user['Role']})")
+    with col2:
+        st.subheader("Lista zleceń")
+        query = "SELECT task_name, date, amount FROM orders ORDER BY date DESC"
+        orders = execute_query(query, fetch=True)
+        
+        if orders:
+            df = pd.DataFrame(orders, columns=["Nazwa zadania", "Data", "Ilość uszczelek"])
+            st.dataframe(df, use_container_width=True)
         else:
-            st.sidebar.error("❌ Niepoprawna nazwa użytkownika lub hasło.")
-else:
-    st.sidebar.markdown(f"<div class='sidebar-title'>✅ Zalogowany jako: {st.session_state.user['Username']} (Rola: {st.session_state.user['Role']})</div>", unsafe_allow_html=True)
+            st.write("Brak zleceń do wyświetlenia.")
 
-    if st.sidebar.button("Wyloguj"):
-        st.session_state.user = None
-        st.sidebar.success("Zostałeś wylogowany.")
+with tabs[1]:  # Production Statistics
+    st.header("📊 Production Statistics")
+    st.write("Średnia dzienna ilość uszczelek (tylko dni robocze)")
 
-    st.markdown("<div class='main-header'>Production Manager App</div>", unsafe_allow_html=True)
+    query = "SELECT date, amount FROM orders"
+    orders = execute_query(query, fetch=True)
+    
+    if orders:
+        df = pd.DataFrame(orders, columns=["Date", "Amount"])
+        
+        # Filtrujemy tylko dni robocze (poniedziałek - piątek)
+        df["Date"] = pd.to_datetime(df["Date"])
+        df = df[df["Date"].dt.weekday < 5]
+        
+        # Obliczamy liczbę dni roboczych
+        working_days = len(df["Date"].unique())
+        
+        if working_days > 0:
+            # Obliczamy średnią ilość uszczelek na dzień roboczy
+            average_daily = df["Amount"].sum() / working_days
+            st.metric(label="Średnia dzienna ilość uszczelek", value=round(average_daily, 2))
+        else:
+            st.write("Brak danych dla dni roboczych.")
+    else:
+        st.write("Brak danych o produkcji.")
 
-    if choice == "👥 Zarządzanie użytkownikami":
-        show_user_management()
-    elif choice == "📥 Import danych":
-        show_import_data()
-    elif choice == "📄 Formularz":
-        show_form()
-    elif choice == "📊 Raporty":
-        show_reports()
-    elif choice == "📈 Wykresy":
-        show_charts()
+with tabs[2]:  # User Management
+    st.header("👥 Zarządzanie użytkownikami")
+    show_user_management()
+
+with tabs[3]:  # Import Data
+    st.header("📥 Import danych")
+    show_import_data()
