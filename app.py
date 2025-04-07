@@ -1,4 +1,8 @@
 import streamlit as st
+
+# 🔑 Page configuration - MUST be the very first Streamlit command!
+st.set_page_config(page_title="Production Manager App", layout="wide")
+
 import bcrypt
 from modules.user_management import show_user_management
 from modules.import_data import show_import_data
@@ -8,8 +12,6 @@ from modules.charts import show_charts
 from modules.database import execute_query
 import psycopg2
 
-# 🔑 Konfiguracja strony - MUSI być na samym początku!
-st.set_page_config(page_title="Production Manager App", layout="wide")
 
 # ✅ Funkcja do nawiązywania połączenia z bazą danych
 def get_connection():
