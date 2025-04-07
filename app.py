@@ -1,8 +1,4 @@
 import streamlit as st
-
-# 🔑 Page configuration - MUST be the very first Streamlit command!
-st.set_page_config(page_title="Production Manager App", layout="wide")
-
 import bcrypt
 from modules.user_management import show_user_management
 from modules.import_data import show_import_data
@@ -12,8 +8,10 @@ from modules.charts import show_charts
 from modules.database import execute_query
 import psycopg2
 
+# 🔑 Page configuration - MUST be at the top!
+st.set_page_config(page_title="Production Manager App", layout="wide")
 
-# ✅ Funkcja do nawiązywania połączenia z bazą danych
+# ✅ Function to establish a database connection
 def get_connection():
     return psycopg2.connect(
         host=st.secrets["postgres"]["host"],
@@ -24,7 +22,7 @@ def get_connection():
         sslmode=st.secrets["postgres"]["sslmode"]
     )
 
-# ✅ Funkcja logowania
+# ✅ Login function - improved to work with bcrypt
 def login(username, password):
     try:
         conn = get_connection()
@@ -37,53 +35,47 @@ def login(username, password):
         if user and bcrypt.checkpw(password.encode('utf-8'), user[1].encode('utf-8')):
             return {"Username": user[0], "Role": user[2]}
         return None
+
     except Exception as e:
-        st.error(f"Błąd połączenia z bazą danych: {e}")
+        st.error(f"Database connection error: {e}")
         return None
 
-# Inicjalizacja stanu sesji
+# Initialize session state
 if 'user' not in st.session_state:
     st.session_state.user = None
 
-# 🌟 Interfejs logowania
-if st.session_state.user is None:
-    st.sidebar.title("🔑 Logowanie")
-    username = st.sidebar.text_input("Nazwa użytkownika", key="login_username")
-    password = st.sidebar.text_input("Hasło", type="password", key="login_password")
+menu = ["Home", "Form", "Reports", "Charts", "User Management", "Import Data"]
+choice = st.sidebar.selectbox("Select Menu", menu)
 
-    if st.sidebar.button("Zaloguj"):
+# 🌟 Login Interface
+if st.session_state.user is None:
+    st.sidebar.title("🔑 Login")
+    username = st.sidebar.text_input("Username", key="login_username")
+    password = st.sidebar.text_input("Password", type="password", key="login_password")
+
+    if st.sidebar.button("Login"):
         user = login(username, password)
         if user:
             st.session_state.user = user
-            st.sidebar.success(f"✅ Zalogowano jako: {user['Username']} (Rola: {user['Role']})")
+            st.sidebar.success(f"✅ Logged in as: {user['Username']} (Role: {user['Role']})")
         else:
-            st.sidebar.error("❌ Niepoprawna nazwa użytkownika lub hasło.")
+            st.sidebar.error("❌ Invalid username or password.")
 else:
-    st.sidebar.write(f"✅ Zalogowany jako: {st.session_state.user['Username']} (Rola: {st.session_state.user['Role']})")
+    st.sidebar.write(f"✅ Logged in as: {st.session_state.user['Username']} (Role: {st.session_state.user['Role']})")
 
-    if st.sidebar.button("Wyloguj"):
+    if st.sidebar.button("Logout"):
         st.session_state.user = None
-        st.sidebar.success("Zostałeś wylogowany.")
+        st.sidebar.success("You have been logged out.")
 
-    # 📌 Użycie zakładek zamiast selectbox
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Home", "Formularz", "Raporty", "Wykresy", "Zarządzanie użytkownikami"])
-
-    with tab1:
-        st.header("📋 Home")
-        show_form()  # Wyświetla formularz po lewej i listę zleceń po środku
-
-    with tab2:
-        st.header("📑 Formularz")
+    if choice == "User Management":
+        show_user_management()
+    elif choice == "Import Data":
+        show_import_data()
+    elif choice == "Form":
         show_form()
-
-    with tab3:
-        st.header("📊 Raporty")
+    elif choice == "Reports":
         show_reports()
-
-    with tab4:
-        st.header("📈 Wykresy")
+    elif choice == "Charts":
         show_charts()
 
-    with tab5:
-        st.header("👥 Zarządzanie użytkownikami")
         show_user_management()
