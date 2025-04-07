@@ -8,10 +8,39 @@ from modules.charts import show_charts
 from modules.database import execute_query
 import psycopg2
 
-# 🔑 Page configuration - MUST be at the top!
+# 🔑 Konfiguracja strony - MUSI być na samym początku!
 st.set_page_config(page_title="Production Manager App", layout="wide")
 
-# ✅ Function to establish a database connection
+# Niestandardowy styl CSS
+st.markdown("""
+    <style>
+    .main-header {
+        font-size: 30px;
+        font-weight: bold;
+        color: #2E86C1;
+    }
+    .sidebar-title {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #1ABC9C;
+    }
+    .sidebar-text {
+        font-size: 16px;
+        color: #34495E;
+    }
+    .stButton>button {
+        background-color: #1ABC9C;
+        color: white;
+        border-radius: 10px;
+    }
+    .stButton>button:hover {
+        background-color: #16A085;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# ✅ Funkcja do nawiązywania połączenia z bazą danych
 def get_connection():
     return psycopg2.connect(
         host=st.secrets["postgres"]["host"],
@@ -22,7 +51,7 @@ def get_connection():
         sslmode=st.secrets["postgres"]["sslmode"]
     )
 
-# ✅ Login function - improved to work with bcrypt
+# ✅ Funkcja logowania - poprawiona do współpracy z bcrypt
 def login(username, password):
     try:
         conn = get_connection()
@@ -37,43 +66,45 @@ def login(username, password):
         return None
 
     except Exception as e:
-        st.error(f"Database connection error: {e}")
+        st.error(f"Błąd połączenia z bazą danych: {e}")
         return None
 
-# Initialize session state
+# Inicjalizacja stanu sesji
 if 'user' not in st.session_state:
     st.session_state.user = None
 
-menu = ["Home", "Form", "Reports", "Charts", "User Management", "Import Data"]
-choice = st.sidebar.selectbox("Select Menu", menu)
+menu = ["🏠 Home", "📄 Formularz", "📊 Raporty", "📈 Wykresy", "👥 Zarządzanie użytkownikami", "📥 Import danych"]
+choice = st.sidebar.selectbox("📋 Wybierz menu", menu)
 
-# 🌟 Login Interface
+# 🌟 Interfejs logowania
 if st.session_state.user is None:
-    st.sidebar.title("🔑 Login")
-    username = st.sidebar.text_input("Username", key="login_username")
-    password = st.sidebar.text_input("Password", type="password", key="login_password")
+    st.sidebar.markdown("<div class='sidebar-title'>🔑 Logowanie</div>", unsafe_allow_html=True)
+    username = st.sidebar.text_input("Nazwa użytkownika", key="login_username")
+    password = st.sidebar.text_input("Hasło", type="password", key="login_password")
 
-    if st.sidebar.button("Login"):
+    if st.sidebar.button("Zaloguj"):
         user = login(username, password)
         if user:
             st.session_state.user = user
-            st.sidebar.success(f"✅ Logged in as: {user['Username']} (Role: {user['Role']})")
+            st.sidebar.success(f"✅ Zalogowano jako: {user['Username']} (Rola: {user['Role']})")
         else:
-            st.sidebar.error("❌ Invalid username or password.")
+            st.sidebar.error("❌ Niepoprawna nazwa użytkownika lub hasło.")
 else:
-    st.sidebar.write(f"✅ Logged in as: {st.session_state.user['Username']} (Role: {st.session_state.user['Role']})")
+    st.sidebar.markdown(f"<div class='sidebar-title'>✅ Zalogowany jako: {st.session_state.user['Username']} (Rola: {st.session_state.user['Role']})</div>", unsafe_allow_html=True)
 
-    if st.sidebar.button("Logout"):
+    if st.sidebar.button("Wyloguj"):
         st.session_state.user = None
-        st.sidebar.success("You have been logged out.")
+        st.sidebar.success("Zostałeś wylogowany.")
 
-    if choice == "User Management":
+    st.markdown("<div class='main-header'>Production Manager App</div>", unsafe_allow_html=True)
+
+    if choice == "👥 Zarządzanie użytkownikami":
         show_user_management()
-    elif choice == "Import Data":
+    elif choice == "📥 Import danych":
         show_import_data()
-    elif choice == "Form":
+    elif choice == "📄 Formularz":
         show_form()
-    elif choice == "Reports":
+    elif choice == "📊 Raporty":
         show_reports()
-    elif choice == "Charts":
+    elif choice == "📈 Wykresy":
         show_charts()
