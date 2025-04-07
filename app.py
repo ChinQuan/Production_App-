@@ -13,8 +13,6 @@ from modules.charts import show_charts
 from modules.database import execute_query
 import psycopg2
 
-# 🔑 Page configuration - MUST be at the top!
-st.set_page_config(page_title="Production Manager App", layout="wide")
 
 # ✅ Function to establish a database connection
 def get_connection():
