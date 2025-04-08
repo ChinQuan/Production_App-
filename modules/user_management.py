@@ -3,6 +3,40 @@ import pandas as pd
 import bcrypt
 from modules.database import get_connection
 
+def authenticate_user():
+    st.sidebar.title("🔐 Login")
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
+    login_button = st.sidebar.button("Login")
+
+    if login_button:
+        if not username or not password:
+            st.error("Please enter both username and password.")
+            return None, None, False
+
+        try:
+            conn = get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT username, password, role FROM users WHERE username = %s", (username,))
+            result = cursor.fetchone()
+            conn.close()
+
+            if result:
+                db_username, db_password, db_role = result
+                if bcrypt.checkpw(password.encode(), db_password.encode()):
+                    return db_username, db_role, True
+                else:
+                    st.error("Incorrect password.")
+                    return None, None, False
+            else:
+                st.error("User not found.")
+                return None, None, False
+        except Exception as e:
+            st.error(f"Database error: {e}")
+            return None, None, False
+    else:
+        return None, None, False
+
 def show_user_management(current_role):
     if current_role != "Admin":
         st.warning("⚠️ Only admins can manage users.")
@@ -13,16 +47,13 @@ def show_user_management(current_role):
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Fetch users
     users = pd.read_sql("SELECT id, username, role FROM users ORDER BY id", conn)
 
-    # 📋 Show current users
     st.subheader("📋 Current Users")
     st.dataframe(users)
 
     st.divider()
 
-    # ➕ Add new user
     st.subheader("➕ Add New User")
     new_username = st.text_input("Username")
     new_password = st.text_input("Password", type="password")
@@ -43,7 +74,6 @@ def show_user_management(current_role):
 
     st.divider()
 
-    # ❌ Delete user
     st.subheader("❌ Delete User")
     usernames = users['username'].tolist()
     user_to_delete = st.selectbox("Select user to delete", usernames)
@@ -56,5 +86,4 @@ def show_user_management(current_role):
             st.experimental_rerun()
 
     conn.close()
-
 
