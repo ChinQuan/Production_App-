@@ -1,4 +1,3 @@
-
 import streamlit as st
 st.set_page_config(page_title="Production Manager App", layout="wide")
 import pandas as pd
@@ -27,25 +26,26 @@ def main():
 
     if not st.session_state.authenticated:
         authenticate_user()
-    else:
-        st.sidebar.success(f"Logged in as: {st.session_state.username} ({st.session_state.role})")
+        st.stop()  # <-- kluczowe, by zatrzymać kod, dopóki user się nie zaloguje
 
-        tabs = ["Add Order", "Reports", "Charts", "User Management"]
-        if st.session_state.role == "admin":
-            tabs.append("Admin Edit Orders")
+    st.sidebar.success(f"Logged in as: {st.session_state.username} ({st.session_state.role})")
 
-        selected_tab = st.selectbox("Select View", tabs)
+    tabs = ["Add Order", "Reports", "Charts", "User Management"]
+    if st.session_state.role == "admin":
+        tabs.append("Admin Edit Orders")
 
-        if selected_tab == "Add Order":
-            show_form()
-        elif selected_tab == "Reports":
-            show_reports()
-        elif selected_tab == "Charts":
-            show_charts()
-        elif selected_tab == "User Management":
-            show_user_management()
-        elif selected_tab == "Admin Edit Orders" and st.session_state.role == "admin":
-            show_admin_edit_orders()
+    selected_tab = st.selectbox("Select View", tabs)
+
+    if selected_tab == "Add Order":
+        show_form()
+    elif selected_tab == "Reports":
+        show_reports()
+    elif selected_tab == "Charts":
+        show_charts()
+    elif selected_tab == "User Management":
+        show_user_management()
+    elif selected_tab == "Admin Edit Orders" and st.session_state.role == "admin":
+        show_admin_edit_orders()
 
 
 if __name__ == "__main__":
