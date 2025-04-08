@@ -2,6 +2,10 @@
 # app.py
 
 import streamlit as st   
+
+st.set_page_config(page_title="Production Manager App", layout="wide")
+
+
 import pandas as pd
 from modules.user_management import authenticate_user, show_user_management
 from modules.import_data import show_import_data
@@ -11,11 +15,8 @@ from modules.production_analysis import calculate_average_time
 from modules.database import get_connection
 
 
+
 def main():
-    st.set_page_config(page_title="Production Manager App", layout="wide")
-
-
-
 
     # Logowanie użytkownika
     username, role, authenticated = authenticate_user()
