@@ -8,7 +8,18 @@ def authenticate_user():
     username = st.sidebar.text_input("Username")
     password = st.sidebar.text_input("Password", type="password")
 
-    if st.sidebar.button("Login") and username and password:
+    # Zmienna do kontrolowania stanu logowania
+    login_button_pressed = st.sidebar.button("Login")
+
+    # Domyślnie nic nie robi — zwraca brak danych
+    if not login_button_pressed:
+        return None, None, False
+
+    if not username or not password:
+        st.error("❌ Please fill in both fields.")
+        return None, None, False
+
+    try:
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT password, role FROM users WHERE username = %s", (username,))
@@ -20,12 +31,11 @@ def authenticate_user():
             if bcrypt.checkpw(password.encode(), hashed_password.encode()):
                 return username, role, True
             else:
-                st.error("❌ Incorrect password")
-                return None, None, False
+                st.error("❌ Incorrect password.")
         else:
-            st.error("❌ User not found")
-            return None, None, False
+            st.error("❌ User not found.")
+    except Exception as e:
+        st.error(f"⚠️ Login error: {e}")
 
     return None, None, False
-
 
