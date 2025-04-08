@@ -37,3 +37,4 @@ def show_admin_creation():
             add_admin(new_username, new_password)
         else:
             st.error("❌ Wprowadź nazwę użytkownika i hasło")
+
