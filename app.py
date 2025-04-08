@@ -12,6 +12,42 @@ from modules.production_analysis import calculate_average_time  # Nowy moduł
 from modules.database import execute_query, get_connection
 import pandas as pd
 
+def show_form():
+    st.sidebar.subheader("📋 Dodaj nowe zlecenie")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    date = st.sidebar.date_input("Data")
+    company = st.sidebar.text_input("Firma")
+    operator = st.sidebar.text_input("Operator")
+    seal_type = st.sidebar.text_input("Rodzaj uszczelki")
+    profile = st.sidebar.text_input("Profil")
+    seal_count = st.sidebar.number_input("Ilość uszczelek", min_value=1, step=1)
+    production_time = st.sidebar.number_input("Czas produkcji (minuty)", min_value=0, step=1)
+    downtime = st.sidebar.number_input("Przestój (minuty)", min_value=0, step=1)
+    downtime_reason = st.sidebar.text_input("Powód przestoju")
+
+    if st.sidebar.button("Dodaj zlecenie"):
+        if company and operator and seal_type and profile and seal_count > 0:
+            try:
+                production_time_hours = production_time / 60
+                downtime_hours = downtime / 60
+
+                cursor.execute(
+                    "INSERT INTO orders (date, company, operator, seal_type, profile, seal_count, production_time, downtime, downtime_reason) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (date, company, operator, seal_type, profile, seal_count, production_time_hours, downtime_hours, downtime_reason)
+                )
+                conn.commit()
+                st.sidebar.success("✅ Zlecenie zostało pomyślnie dodane.")
+            except Exception as e:
+                st.sidebar.error(f"❌ Wystąpił błąd podczas dodawania zlecenia: {e}")
+        else:
+            st.sidebar.error("❌ Wszystkie pola muszą być wypełnione.")
+
+    cursor.close()
+    conn.close()
+
 def show_home():
     st.title("🏠 Home")
     conn = get_connection()
@@ -30,7 +66,6 @@ def show_home():
     st.dataframe(df)
 
     df['date'] = pd.to_datetime(df['date'])
-    # 🔥 Filtrowanie tylko dni roboczych (od poniedziałku do piątku)
     working_days_df = df[df['date'].dt.dayofweek < 5]
     daily_average = working_days_df.groupby(working_days_df['date'].dt.date)['seal_count'].sum().mean()
 
@@ -52,6 +87,8 @@ def main():
             st.sidebar.error("❌ Błędne dane logowania. Spróbuj ponownie.")
     else:
         st.sidebar.success(f"✅ Zalogowany jako: {st.session_state.username}")
+
+        show_form()  # Formularz jest dostępny na każdej stronie w pasku bocznym
 
         tabs = st.tabs(["Home", "Raporty", "Wykresy", "Użytkownicy", "Import danych", "Analiza Produkcji"])
 
