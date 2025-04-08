@@ -8,7 +8,7 @@ def authenticate_user():
     username = st.sidebar.text_input("Username")
     password = st.sidebar.text_input("Password", type="password")
 
-    if st.sidebar.button("Login"):
+    if st.sidebar.button("Login") and username and password:
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT password, role FROM users WHERE username = %s", (username,))
@@ -18,12 +18,14 @@ def authenticate_user():
         if result:
             hashed_password, role = result
             if bcrypt.checkpw(password.encode(), hashed_password.encode()):
-                st.success("✅ Login successful")
                 return username, role, True
             else:
                 st.error("❌ Incorrect password")
+                return None, None, False
         else:
             st.error("❌ User not found")
+            return None, None, False
 
     return None, None, False
+
 
