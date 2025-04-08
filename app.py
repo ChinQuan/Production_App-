@@ -1,15 +1,18 @@
+
 import streamlit as st
+
+# Ustawienie konfiguracji strony MUSI być pierwszą komendą Streamlit
+st.set_page_config(page_title="Production Manager App", layout="wide")
+
 import bcrypt
-from modules.user_management import show_user_management, authenticate_user  # Importowanie funkcji do logowania
+from modules.user_management import show_user_management, authenticate_user
 from modules.import_data import show_import_data
 from modules.form import show_form
 from modules.reports import show_reports
 from modules.charts import show_charts
+from modules.production_analysis import calculate_average_time  # Nowy moduł
 from modules.database import execute_query, get_connection
 import pandas as pd
-
-# Ustawienie konfiguracji strony MUSI być pierwszą komendą Streamlit
-st.set_page_config(page_title="Production Manager App", layout="wide")
 
 def show_home():
     st.title("🏠 Home")
@@ -18,7 +21,6 @@ def show_home():
         st.error("Database connection failed. Contact administrator.")
         return
 
-    # Wyciągnięcie wszystkich zleceń
     df = pd.read_sql("SELECT * FROM orders", conn)
     conn.close()
 
@@ -26,17 +28,14 @@ def show_home():
         st.warning("No data available to display.")
         return
 
-    # Wyświetlanie wszystkich zleceń
     st.subheader("All Orders")
     st.dataframe(df)
 
-    # Obliczanie średniej produkcji dziennej
     df['date'] = pd.to_datetime(df['date'])
     daily_average = df.groupby(df['date'].dt.date)['seal_count'].sum().mean()
 
     st.subheader("📈 Average Daily Production")
     st.metric(label="Average Daily Production", value=f"{daily_average:.2f} seals/day")
-
 
 def main():
     if 'authenticated' not in st.session_state:
@@ -54,7 +53,7 @@ def main():
     else:
         st.sidebar.success(f"✅ Zalogowany jako: {st.session_state.username}")
 
-        tabs = st.tabs(["Home", "Formularz", "Raporty", "Wykresy", "Użytkownicy", "Import danych"])
+        tabs = st.tabs(["Home", "Formularz", "Raporty", "Wykresy", "Użytkownicy", "Import danych", "Analiza Produkcji"])
 
         with tabs[0]:
             show_home()
@@ -68,6 +67,8 @@ def main():
             show_user_management()
         with tabs[5]:
             show_import_data()
+        with tabs[6]:
+            calculate_average_time()
 
 
 if __name__ == "__main__":
