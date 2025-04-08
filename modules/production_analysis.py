@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 from datetime import datetime, timedelta
 from modules.database import get_connection
 
@@ -12,7 +13,7 @@ def format_time(seconds):
         return f"{minutes} minute{'s' if minutes > 1 else ''} {remaining_seconds} seconds"
 
 def calculate_average_time():
-    st.header("⏳ Average Production Time Analysis")
+    st.header("⏳ Advanced Production Analysis")
 
     conn = get_connection()
     df = pd.read_sql("SELECT * FROM orders", conn)
@@ -24,7 +25,7 @@ def calculate_average_time():
 
     df['date'] = pd.to_datetime(df['date'])
 
-    # 📅 Opcje wyboru przedziału czasowego
+    # 📅 Filter by Date Range
     st.sidebar.header("📅 Filter by Date Range")
     date_filter = st.sidebar.selectbox(
         "Select Date Range",
@@ -52,43 +53,36 @@ def calculate_average_time():
 
     st.write(f"Showing data from **{start_date.date()}** to **{end_date.date()}**")
 
-    # Typ uszczelki dla danej firmy
-    with st.expander("📊 Average Time per Seal Type for Each Company"):
-        company_groups = filtered_df.groupby(['company', 'seal_type'])
-        company_results = []
-        for (company, seal_type), group in company_groups:
-            total_time = group['production_time'].sum()
-            total_seals = group['seal_count'].sum()
-            if total_seals > 0:
-                avg_time = (total_time / total_seals) * 60
-                company_results.append([company, seal_type, format_time(avg_time), round(60 / avg_time, 2)])
-        company_df = pd.DataFrame(company_results, columns=["Company", "Seal Type", "Average Time per Seal", "Seals per Minute (UPM)"])
-        st.table(company_df)
+    # 📊 Produktywność operatorów
+    with st.expander("📊 Productivity by Operator"):
+        operator_df = filtered_df.groupby('operator')[['seal_count', 'production_time']].sum().reset_index()
+        operator_df['UPM'] = operator_df['seal_count'] / (operator_df['production_time'] * 60)
+        fig1 = px.bar(operator_df, x='operator', y='UPM', title='Operator Productivity (UPM)')
+        st.plotly_chart(fig1)
 
-    # Typ uszczelki dla każdego operatora
-    with st.expander("📊 Average Time per Seal Type for Each Operator"):
-        operator_groups = filtered_df.groupby(['operator', 'seal_type'])
-        operator_results = []
-        for (operator, seal_type), group in operator_groups:
-            total_time = group['production_time'].sum()
-            total_seals = group['seal_count'].sum()
-            if total_seals > 0:
-                avg_time = (total_time / total_seals) * 60
-                operator_results.append([operator, seal_type, format_time(avg_time), round(60 / avg_time, 2)])
-        operator_df = pd.DataFrame(operator_results, columns=["Operator", "Seal Type", "Average Time per Seal", "Seals per Minute (UPM)"])
-        st.table(operator_df)
+    # 📅 Produkcja na przestrzeni czasu
+    with st.expander("📈 Production Over Time"):
+        time_df = filtered_df.groupby('date')['seal_count'].sum().reset_index()
+        fig2 = px.line(time_df, x='date', y='seal_count', title='Production Over Time')
+        st.plotly_chart(fig2)
 
-    # Ogólna analiza na podstawie typu uszczelki
-    with st.expander("📊 General Analysis by Seal Type"):
-        seal_types = filtered_df['seal_type'].unique()
-        results = []
-        for seal_type in seal_types:
-            type_df = filtered_df[filtered_df['seal_type'] == seal_type]
-            total_time = type_df['production_time'].sum()
-            total_seals = type_df['seal_count'].sum()
-            if total_seals > 0:
-                avg_time = (total_time / total_seals) * 60
-                results.append([seal_type, format_time(avg_time), round(60 / avg_time, 2)])
+    # 🏢 Produkcja per firma
+    with st.expander("🏢 Production by Company"):
+        company_df = filtered_df.groupby('company')['seal_count'].sum().reset_index()
+        fig3 = px.pie(company_df, names='company', values='seal_count', title='Production by Company')
+        st.plotly_chart(fig3)
 
-        result_df = pd.DataFrame(results, columns=["Seal Type", "Average Time per Seal", "Seals Produced per Minute"])
-        st.table(result_df)
+    # 🔩 Produkcja per typ uszczelki
+    with st.expander("🔩 Production by Seal Type"):
+        seal_type_df = filtered_df.groupby('seal_type')['seal_count'].sum().reset_index()
+        fig4 = px.bar(seal_type_df, x='seal_type', y='seal_count', title='Production by Seal Type')
+        st.plotly_chart(fig4)
+
+    # ⛔ Analiza przestojów
+    with st.expander("⛔ Downtime Analysis"):
+        downtime_df = filtered_df.groupby('downtime_reason')['downtime'].sum().reset_index()
+        fig5 = px.bar(downtime_df, x='downtime_reason', y='downtime', title='Downtime Reasons')
+        st.plotly_chart(fig5)
+
+    st.success("📊 Analysis successfully completed")
+
