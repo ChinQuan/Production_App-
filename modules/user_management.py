@@ -3,38 +3,27 @@ import pandas as pd
 import bcrypt
 from modules.database import get_connection
 
-def authenticate_user():
-    st.sidebar.title("🔐 Login")
-    username = st.sidebar.text_input("Username")
-    password = st.sidebar.text_input("Password", type="password")
-    login_button = st.sidebar.button("Login")
+def authenticate_user(username_input, password_input):
+    if not username_input or not password_input:
+        return None, None, False
 
-    if login_button:
-        if not username or not password:
-            st.error("Please enter both username and password.")
-            return None, None, False
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT username, password, role FROM users WHERE username = %s", (username_input,))
+        result = cursor.fetchone()
+        conn.close()
 
-        try:
-            conn = get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT username, password, role FROM users WHERE username = %s", (username,))
-            result = cursor.fetchone()
-            conn.close()
-
-            if result:
-                db_username, db_password, db_role = result
-                if bcrypt.checkpw(password.encode(), db_password.encode()):
-                    return db_username, db_role, True
-                else:
-                    st.error("Incorrect password.")
-                    return None, None, False
+        if result:
+            db_username, db_password, db_role = result
+            if bcrypt.checkpw(password_input.encode(), db_password.encode()):
+                return db_username, db_role, True
             else:
-                st.error("User not found.")
                 return None, None, False
-        except Exception as e:
-            st.error(f"Database error: {e}")
+        else:
             return None, None, False
-    else:
+    except Exception as e:
+        st.error(f"Database error: {e}")
         return None, None, False
 
 def show_user_management(current_role):
