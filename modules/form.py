@@ -58,14 +58,21 @@ def calculate_average_time():
         operator_df = filtered_df.groupby('operator')[['seal_count', 'production_time']].sum().reset_index()
 
         # 🔥 Sprawdzanie danych wejściowych
-        st.write("### Dane dotyczące operatorów")
+        st.write("### Dane dotyczące operatorów (Przed obliczeniem UPM)")
         st.dataframe(operator_df)
 
         # Obliczanie UPM na podstawie minut
         operator_df['UPM'] = operator_df['seal_count'] / operator_df['production_time']
 
+        # Dodanie dodatkowej kolumny "Uszczelki na godzinę (SPH)"
+        operator_df['SPH'] = operator_df['UPM'] * 60  # Przeliczenie na godziny
+
+        # Wyświetlenie szczegółowej tabeli z UPM i SPH
+        st.write("### Dane z przeliczeniem UPM i SPH (Uszczelki na godzinę)")
+        st.dataframe(operator_df)
+
         # Wizualizacja wykresu
-        fig1 = px.bar(operator_df, x='operator', y='UPM', title='Operator Productivity (UPM)')
+        fig1 = px.bar(operator_df, x='operator', y='SPH', title='Operator Productivity (SPH - Seals per Hour)')
         st.plotly_chart(fig1)
 
     # 📅 Produkcja na przestrzeni czasu
