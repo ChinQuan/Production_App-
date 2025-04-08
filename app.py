@@ -45,7 +45,7 @@ def main():
         for key in ["authenticated", "username", "role"]:
             if key in st.session_state:
                 del st.session_state[key]
-    st.experimental_rerun()
+        st.experimental_rerun()
 
     menu = ["Add Order", "Reports", "Charts"]
     if role == "Admin":
