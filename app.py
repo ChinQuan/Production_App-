@@ -11,8 +11,6 @@ from modules.reports import show_reports
 from modules.charts import show_charts
 from modules.admin_management import show_admin_creation
 
-# Ustawienia aplikacji
-st.set_page_config(page_title="Production Manager App", layout="wide")
 
 if 'user' not in st.session_state:
     st.session_state.user = None
