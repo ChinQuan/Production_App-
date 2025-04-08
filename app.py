@@ -26,7 +26,7 @@ def main():
         if authenticated:
             st.session_state.authenticated = True
             st.session_state.username = username
-            st.experimental_rerun()
+            st.sidebar.success("✅ Zalogowano pomyślnie.")
         else:
             st.sidebar.error("❌ Błędne dane logowania. Spróbuj ponownie.")
     else:
@@ -47,7 +47,6 @@ def main():
         elif choice == "Wyloguj":
             st.session_state.authenticated = False
             st.session_state.username = None
-            st.experimental_rerun()
 
 
 if __name__ == "__main__":
