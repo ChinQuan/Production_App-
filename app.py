@@ -1,3 +1,5 @@
+# app.py
+
 import streamlit as st
 st.set_page_config(page_title="Production Manager App", layout="wide")
 import pandas as pd
@@ -11,60 +13,63 @@ from modules.form import show_form, show_home
 
 
 
+
 def main():
+    # Obsługa sesji
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
         st.session_state.username = None
         st.session_state.role = None
 
-    if not st.session_state.authenticated:
-        st.title("🔐 Login")
-
-        username_input = st.text_input("Username")
-        password_input = st.text_input("Password", type="password")
-        login_button = st.button("Login")
-
-        if login_button:
-            username, role, authenticated = authenticate_user(username_input, password_input)
-            if authenticated:
-                st.session_state.authenticated = True
-                st.session_state.username = username
-                st.session_state.role = role
-                st.experimental_rerun()
-            else:
-                st.error("❌ Authentication failed. Please try again.")
-        return
-
-    # User is authenticated
-    username = st.session_state.username
-    role = st.session_state.role
-
-    st.sidebar.markdown(f"## 👤 Logged in as {role}: `{username}`")
-
+    # Obsługa wylogowania — PRZENIESIONA na górę, żeby działała nawet gdy user nie jest zalogowany
     if st.sidebar.button("🚪 Logout"):
         for key in ["authenticated", "username", "role"]:
             if key in st.session_state:
                 del st.session_state[key]
         st.experimental_rerun()
 
+    # Logowanie
+    if not st.session_state.authenticated:
+        username, role, authenticated = authenticate_user()
+        if authenticated:
+            st.session_state.authenticated = True
+            st.session_state.username = username
+            st.session_state.role = role
+        else:
+            st.warning("🔒 Please log in to access the app.")
+            return
+    else:
+        username = st.session_state.username
+        role = st.session_state.role
+
+    # Pasek boczny
+    st.sidebar.markdown(f"## 👤 Logged in as {role}: `{username}`")
+
     menu = ["Add Order", "Reports", "Charts"]
     if role == "Admin":
-        menu.extend(["User Management", "Edit Orders"])
+        menu.append("User Management")
+        menu.append("Edit Orders")
 
     tab = st.sidebar.radio("📂 Navigation", menu)
 
+    # Nawigacja
     if tab == "Add Order":
         show_form()
         show_home()
+
     elif tab == "Reports":
         show_reports()
+
     elif tab == "Charts":
         show_charts()
         calculate_average_time()
+
     elif tab == "User Management" and role == "Admin":
         show_user_management(role)
+
     elif tab == "Edit Orders" and role == "Admin":
         show_edit_orders()
+
 
 def show_edit_orders():
     st.title('📋 Edit Orders')
@@ -89,6 +94,7 @@ def show_edit_orders():
         conn.close()
         st.success("✅ Order deleted successfully.")
         st.experimental_rerun()
+
 
 if __name__ == '__main__':
     main()
