@@ -56,7 +56,15 @@ def calculate_average_time():
     # 📊 Produktywność operatorów
     with st.expander("📊 Productivity by Operator"):
         operator_df = filtered_df.groupby('operator')[['seal_count', 'production_time']].sum().reset_index()
-        operator_df['UPM'] = operator_df['seal_count'] / operator_df['production_time']  # Poprawione przeliczenie na minuty
+
+        # 🔥 Sprawdzanie danych wejściowych
+        st.write("### Dane dotyczące operatorów")
+        st.dataframe(operator_df)
+
+        # Obliczanie UPM na podstawie minut
+        operator_df['UPM'] = operator_df['seal_count'] / operator_df['production_time']
+
+        # Wizualizacja wykresu
         fig1 = px.bar(operator_df, x='operator', y='UPM', title='Operator Productivity (UPM)')
         st.plotly_chart(fig1)
 
