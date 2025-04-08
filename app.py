@@ -8,6 +8,8 @@ from modules.charts import show_charts
 from modules.database import execute_query, get_connection
 import pandas as pd
 
+# Ustawienie konfiguracji strony MUSI być pierwszą komendą Streamlit
+st.set_page_config(page_title="Production Manager App", layout="wide")
 
 def show_home():
     st.title("🏠 Home")
@@ -36,8 +38,7 @@ def show_home():
     st.metric(label="Average Daily Production", value=f"{daily_average:.2f} seals/day")
 
 
-def main():
-    st.set_page_config(page_title="Production Manager App", layout="wide")
+
 
     if 'authenticated' not in st.session_state:
         st.session_state.authenticated = False
