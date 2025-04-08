@@ -8,6 +8,8 @@ from modules.reports import show_reports
 from modules.charts import show_charts
 from modules.production_analysis import calculate_average_time
 from modules.database import get_connection
+from modules.form import show_form, show_home
+
 
 
 
