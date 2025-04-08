@@ -57,8 +57,11 @@ def calculate_average_time():
     with st.expander("📊 Productivity by Operator"):
         operator_df = filtered_df.groupby('operator')[['seal_count', 'production_time']].sum().reset_index()
 
-        # 🔥 Sprawdzanie danych wejściowych
-        st.write("### Dane dotyczące operatorów (Przed obliczeniem UPM)")
+        # 🔥 Usuwanie dni, gdzie produkcja była zerowa
+        operator_df = operator_df[operator_df['production_time'] > 0]
+
+        # 🔥 Sprawdzanie danych wejściowych po filtrowaniu
+        st.write("### Dane dotyczące operatorów (Po usunięciu zerowych produkcji)")
         st.dataframe(operator_df)
 
         # Obliczanie UPM na podstawie minut
