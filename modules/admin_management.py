@@ -33,13 +33,12 @@ def show_user_creation():
     st.title("Zarządzanie użytkownikami")
 
     st.sidebar.header("Dodaj Nowego Użytkownika")
-    new_username = st.sidebar.text_input("Nazwa użytkownika")
-    new_password = st.sidebar.text_input("Hasło", type="password")
-    role = st.sidebar.selectbox("Wybierz rolę", ("Admin", "Operator"))
+    new_username = st.sidebar.text_input("Nazwa użytkownika", key="new_username")
+    new_password = st.sidebar.text_input("Hasło", type="password", key="new_password")
+    role = st.sidebar.selectbox("Wybierz rolę", ("Admin", "Operator"), key="user_role")
 
-    if st.sidebar.button("Dodaj Użytkownika"):
+    if st.sidebar.button("Dodaj Użytkownika", key="add_user_button"):
         if new_username and new_password:
             add_user(new_username, new_password, role)
         else:
             st.error("❌ Wprowadź nazwę użytkownika, hasło i rolę")
-    
