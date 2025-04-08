@@ -26,7 +26,7 @@ def show_import_data():
 
             for index, row in df.iterrows():
                 date = pd.to_datetime(row['date']).date()
-                company = row['company']
+                company = row['company'] if pd.notna(row['company']) else "Unknown"  # Zamiana NaN na "Unknown"
                 operator = row['operator']
                 seal_type = row['seal_type']
                 profile = row.get('profile', '')
