@@ -1,9 +1,7 @@
-
 # app.py
 
 import streamlit as st
 st.set_page_config(page_title="Production Manager App", layout="wide")
-
 import pandas as pd
 from modules.user_management import authenticate_user, show_user_management
 from modules.import_data import show_import_data
@@ -15,13 +13,11 @@ from modules.database import get_connection
 
 
 def main():
-    result = authenticate_user()
+    username, role, authenticated = authenticate_user()
 
-    if result is None or len(result) != 3:
-        st.error("❌ Błąd uwierzytelniania: funkcja authenticate_user() nie zwraca poprawnych danych.")
+    if username is None or role is None:
+        st.error("❌ Błąd uwierzytelniania: brak danych użytkownika.")
         return
-
-    username, role, authenticated = result
 
     if not authenticated:
         st.warning("Proszę się zalogować.")
