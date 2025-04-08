@@ -32,16 +32,22 @@ def show_form(tab_name):
     seal_type = st.sidebar.text_input("Rodzaj uszczelki", key=seal_type_key)
     profile = st.sidebar.text_input("Profil", key=profile_key)
     seal_count = st.sidebar.number_input("Ilość uszczelek", min_value=1, step=1, key=seal_count_key)
-    production_time = st.sidebar.number_input("Czas produkcji (h)", min_value=0.0, key=production_time_key)
-    downtime = st.sidebar.number_input("Przestój (h)", min_value=0.0, key=downtime_key)
+    
+    # ⏳ Teraz wprowadzamy minuty zamiast godzin
+    production_time = st.sidebar.number_input("Czas produkcji (minuty)", min_value=0, step=1, key=production_time_key)
+    downtime = st.sidebar.number_input("Przestój (minuty)", min_value=0, step=1, key=downtime_key)
     downtime_reason = st.sidebar.text_input("Powód przestoju", key=downtime_reason_key)
 
     if st.sidebar.button("Dodaj zlecenie", key=submit_button_key):
         if company and operator and seal_type and profile and seal_count > 0:
             try:
+                # Konwersja minut na godziny do zapisu w bazie danych
+                production_time_hours = production_time / 60
+                downtime_hours = downtime / 60
+
                 cursor.execute(
                     "INSERT INTO orders (date, company, operator, seal_type, profile, seal_count, production_time, downtime, downtime_reason) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                    (date, company, operator, seal_type, profile, seal_count, production_time, downtime, downtime_reason)
+                    (date, company, operator, seal_type, profile, seal_count, production_time_hours, downtime_hours, downtime_reason)
                 )
                 conn.commit()
                 st.sidebar.success("✅ Zlecenie zostało pomyślnie dodane.")
