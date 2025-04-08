@@ -38,8 +38,7 @@ def show_home():
     st.metric(label="Average Daily Production", value=f"{daily_average:.2f} seals/day")
 
 
-
-
+def main():
     if 'authenticated' not in st.session_state:
         st.session_state.authenticated = False
         st.session_state.username = None
