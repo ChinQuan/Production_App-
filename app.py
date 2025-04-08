@@ -13,12 +13,27 @@ from modules.form import show_form, show_home
 
 
 
-def main():
-    username, role, authenticated = authenticate_user()
+username, role, authenticated = authenticate_user()
 
-    if username is None or role is None:
-        st.error("❌ Authentication failed: missing user data.")
-        return
+if username is None or role is None:
+    st.error("❌ Authentication failed: missing user data.")
+    return
+
+if not authenticated:
+    st.warning("Please log in.")
+    return
+
+st.sidebar.markdown(f"## 👤 Logged in as {role}: `{username}`")
+menu = ["Add Order", "Reports", "Charts"]
+if role == "Admin":
+    menu.append("User Management")
+    menu.append("Edit Orders")
+
+tab = st.sidebar.radio("📂 Navigation", menu)
+
+if tab == "User Management" and role == "Admin":
+    show_user_management(role)
+
 
     if not authenticated:
         st.warning("Please log in.")
