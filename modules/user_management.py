@@ -36,6 +36,7 @@ def authenticate_user():
         except Exception as e:
             st.sidebar.error(f"❌ Błąd logowania: {e}")
 
-    # Domyślny zwrot jeśli logowanie się nie powiodło lub nie kliknięto
-    return None, None, False
+        return None, None, False  # <- dodane wewnątrz if'a
+
+    return None, None, False  # <- dodane poza if'em, jeśli przycisk NIE został kliknięty
 
