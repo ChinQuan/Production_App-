@@ -1,15 +1,34 @@
-import streamlit as st  # Musi być pierwsze
-
-st.set_page_config(page_title="Production Manager App", layout="wide")  # Musi być zaraz po imporcie
-
-# Następnie importujesz swoje moduły
+import streamlit as st
+st.set_page_config(page_title="Production Manager App", layout="wide")
+import pandas as pd
 from modules.user_management import show_user_management
 from modules.import_data import show_import_data
 from modules.form import show_form
 from modules.reports import show_reports
 from modules.charts import show_charts
 from modules.admin_management import show_admin_creation
+from modules.database import get_connection
 
+
+
+# Testowanie połączenia z bazą danych
+try:
+    conn = get_connection()
+    st.success("✅ Połączenie z bazą danych działa poprawnie!")
+    conn.close()
+except Exception as e:
+    st.error(f"❌ Błąd połączenia z bazą danych: {e}")
+
+# Sprawdzenie zawartości tabeli users
+try:
+    conn = get_connection()
+    query = "SELECT * FROM users"
+    df = pd.read_sql(query, conn)
+    st.write("📋 Lista użytkowników w bazie danych:")
+    st.dataframe(df)
+    conn.close()
+except Exception as e:
+    st.error(f"❌ Błąd podczas pobierania użytkowników: {e}")
 
 if 'user' not in st.session_state:
     st.session_state.user = None
@@ -24,7 +43,6 @@ if st.session_state.user is None:
     password = st.sidebar.text_input("Password", type="password", key="login_password")
 
     if st.sidebar.button("Login"):
-        from modules.database import get_connection
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute(
