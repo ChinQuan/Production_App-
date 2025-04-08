@@ -6,31 +6,58 @@ from modules.user_management import authenticate_user, show_user_management
 
 def main():
     # Logowanie
-    username, role, authenticated = authenticate_user()
-    if authenticated:
-        st.session_state.authenticated = True
-        st.session_state.username = username
-        st.session_state.role = role
-        
-        # Tworzenie menu
-        menu = ["Home", "Add Order", "Reports", "Charts", "User Management"]
-        tab = st.sidebar.selectbox("Select a tab", menu)
+    if 'authenticated' not in st.session_state:
+        st.session_state.authenticated = False
 
-        # Logika nawigacji
-        if tab == "Home":
-            st.title("Welcome to the Production Manager App!")
-        elif tab == "Add Order":
-            show_add_order()
-        elif tab == "Reports":
-            show_reports()
-        elif tab == "Charts":
-            show_charts()
-        elif tab == "User Management" and role == "Admin":
-            show_user_management(role)
+    if not st.session_state.authenticated:
+        username, role, authenticated = authenticate_user()
+        if authenticated:
+            st.session_state.authenticated = True
+            st.session_state.username = username
+            st.session_state.role = role
         else:
-            st.warning("You don't have permission to access this page.")
+            return
+
+    # Tworzenie menu
+    menu = ["Home", "Add Order", "Reports", "Charts", "User Management"]
+    tab = st.sidebar.selectbox("Select a tab", menu)
+
+    # Logika nawigacji
+    if tab == "Home":
+        st.title("Welcome to the Production Manager App!")
+    elif tab == "Add Order":
+        show_add_order()
+    elif tab == "Reports":
+        show_reports()
+    elif tab == "Charts":
+        show_charts()
+    elif tab == "User Management" and st.session_state.role == "Admin":
+        show_user_management(st.session_state.role)
     else:
-        st.warning("Please log in.")
+        st.warning("You don't have permission to access this page.")
+
+def authenticate_user():
+    st.title("🔐 Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT password, role FROM users WHERE username = %s", (username,))
+        result = cursor.fetchone()
+        conn.close()
+
+        if result:
+            hashed_password, role = result
+            if bcrypt.checkpw(password.encode(), hashed_password.encode()):
+                return username, role, True
+            else:
+                st.error("❌ Invalid password.")
+        else:
+            st.error("❌ User not found.")
+
+    return None, None, False
 
 def show_add_order():
     st.title("📦 Add New Order")
@@ -65,36 +92,6 @@ def show_charts():
     # Implementacja wykresów
     st.write("Charts feature coming soon!")
 
-def show_orders():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, company, operator, seal_type, seal_count, production, downtime FROM orders")
-    orders = cursor.fetchall()
-    conn.close()
-
-    st.subheader("📝 Orders Management")
-    for order in orders:
-        with st.expander(f"Edit Order {order[0]}"):
-            new_company = st.text_input(f"Company for Order {order[0]}", value=order[1])
-            new_operator = st.text_input(f"Operator for Order {order[0]}", value=order[2])
-            new_seal_type = st.text_input(f"Seal Type for Order {order[0]}", value=order[3])
-            new_seal_count = st.number_input(f"Seal Count for Order {order[0]}", value=order[4])
-            new_production = st.number_input(f"Production for Order {order[0]}", value=order[5])
-            new_downtime = st.number_input(f"Downtime for Order {order[0]}", value=order[6])
-
-            if st.button(f"Save Changes for Order {order[0]}"):
-                conn = get_connection()
-                cursor = conn.cursor()
-                cursor.execute("""
-                    UPDATE orders 
-                    SET company = %s, operator = %s, seal_type = %s, seal_count = %s, production = %s, downtime = %s
-                    WHERE id = %s
-                """, (new_company, new_operator, new_seal_type, new_seal_count, new_production, new_downtime, order[0]))
-                conn.commit()
-                conn.close()
-                st.success(f"✅ Order {order[0]} updated successfully.")
-                st.experimental_rerun()
-
 def show_user_management(role):
     st.title("👥 User Management")
 
@@ -122,8 +119,7 @@ def show_user_management(role):
         conn.commit()
         conn.close()
         st.success("✅ User created successfully.")
-        st.experimental_memo.clear()  # Clear any cached data and force refresh of components
-        show_user_management(role)
+        st.experimental_rerun()
 
     st.subheader("🗑️ Delete User")
     user_to_delete = st.text_input("Enter username to delete")
@@ -135,7 +131,7 @@ def show_user_management(role):
             conn.commit()
             conn.close()
             st.success("✅ User deleted.")
-            show_user_management(role)
+            st.experimental_rerun()
         else:
             st.warning("⚠️ Cannot delete the main admin user.")
 
