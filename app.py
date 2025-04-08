@@ -42,10 +42,10 @@ def main():
     st.sidebar.markdown(f"## 👤 Logged in as {role}: `{username}`")
 
     if st.sidebar.button("🚪 Logout"):
-        st.session_state.authenticated = False
-        st.session_state.username = None
-        st.session_state.role = None
-        st.experimental_rerun()
+    for key in ["authenticated", "username", "role"]:
+        if key in st.session_state:
+            del st.session_state[key]
+    st.experimental_rerun()
 
     menu = ["Add Order", "Reports", "Charts"]
     if role == "Admin":
