@@ -1,5 +1,6 @@
 import streamlit as st
 import psycopg2
+import bcrypt
 
 def get_connection():
     conn = psycopg2.connect(
@@ -11,37 +12,54 @@ def get_connection():
     )
     return conn
 
+def authenticate_user():
+    st.sidebar.subheader("🔑 Logowanie")
+    username = st.sidebar.text_input("Nazwa użytkownika")
+    password = st.sidebar.text_input("Hasło", type="password")
+    
+    if st.sidebar.button("Zaloguj"):
+        try:
+            conn = get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT username, password FROM users WHERE username = %s", (username,))
+            result = cursor.fetchone()
+
+            if result:
+                db_username, hashed_password = result
+                if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+                    return username, True
+                else:
+                    st.sidebar.error("❌ Nieprawidłowe hasło.")
+            else:
+                st.sidebar.error("❌ Użytkownik nie istnieje.")
+
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            st.sidebar.error(f"❌ Wystąpił błąd podczas logowania: {e}")
+
+    return None, False
+
 def show_user_management():
     st.subheader("User Management")
 
     # Dodawanie nowego użytkownika
     st.sidebar.header("Add New User")
-    new_username = st.sidebar.text_input("Username", key="new_username_input")
-    new_password = st.sidebar.text_input("Password", type="password", key="new_password_input")
-    new_role = st.sidebar.selectbox("Role", ["Admin", "Operator", "User"], key="new_role_select")
+    new_username = st.sidebar.text_input("Nazwa użytkownika (nowy)")
+    new_password = st.sidebar.text_input("Hasło (nowe)", type="password")
 
-    if st.sidebar.button("Add User", key="add_user_button"):
-        if new_username and new_password:
+    if st.sidebar.button("Dodaj użytkownika"):
+        try:
             conn = get_connection()
             cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
-                (new_username, new_password, new_role)
-            )
+
+            hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (new_username, hashed_password))
             conn.commit()
+
+            st.sidebar.success(f"✅ Użytkownik {new_username} został dodany.")
+
+            cursor.close()
             conn.close()
-            st.sidebar.success(f"User '{new_username}' added successfully!")
-        else:
-            st.sidebar.error("Provide a username and password.")
-
-    # Wyświetlanie listy użytkowników
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users")
-    users = cursor.fetchall()
-    conn.close()
-
-    if users:
-        st.write("### Users List")
-        for user in users:
-            st.write(f"Username: {user[1]}, Role: {user[3]}")
+        except Exception as e:
+            st.sidebar.error(f"❌ Wystąpił błąd podczas dodawania użytkownika: {e}")
