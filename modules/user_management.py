@@ -53,10 +53,7 @@ def show_user_management(role):
         conn.commit()
         conn.close()
         st.success("✅ User created successfully.")
-        
-        # Dynamically refresh the user list instead of rerunning the app
-        st.experimental_memo.clear()  # Clear any cached data and force refresh of components
-        show_user_management(role)
+        st.experimental_rerun()
 
     st.subheader("🗑️ Delete User")
     user_to_delete = st.text_input("Enter username to delete")
@@ -68,6 +65,6 @@ def show_user_management(role):
             conn.commit()
             conn.close()
             st.success("✅ User deleted.")
-            show_user_management(role)
+            st.experimental_rerun()
         else:
             st.warning("⚠️ Cannot delete the main admin user.")
