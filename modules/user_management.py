@@ -18,10 +18,8 @@ def authenticate_user(username_input, password_input):
             db_username, db_password, db_role = result
             if bcrypt.checkpw(password_input.encode(), db_password.encode()):
                 return db_username, db_role, True
-            else:
-                return None, None, False
-        else:
-            return None, None, False
+        return None, None, False
+
     except Exception as e:
         st.error(f"Database error: {e}")
         return None, None, False
