@@ -1,7 +1,8 @@
-import streamlit as st 
-# Ustawienia aplikacji
-st.set_page_config(page_title="Production Manager App", layout="wide")
+import streamlit as st  # Musi być pierwsze
 
+st.set_page_config(page_title="Production Manager App", layout="wide")  # Musi być zaraz po imporcie
+
+# Następnie importujesz swoje moduły
 from modules.user_management import show_user_management
 from modules.import_data import show_import_data
 from modules.form import show_form
