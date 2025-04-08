@@ -1,22 +1,44 @@
 import streamlit as st
-
-# 🔑 Page configuration - MUST be the very first Streamlit command!
-st.set_page_config(page_title="Production Manager App", layout="wide")
-
-
 import bcrypt
 from modules.user_management import show_user_management, authenticate_user  # Importowanie funkcji do logowania
 from modules.import_data import show_import_data
 from modules.form import show_form
 from modules.reports import show_reports
 from modules.charts import show_charts
-from modules.database import execute_query
-import psycopg2
+from modules.database import execute_query, get_connection
+import pandas as pd
+
+
+def show_home():
+    st.title("🏠 Home")
+    conn = get_connection()
+    if conn is None:
+        st.error("Database connection failed. Contact administrator.")
+        return
+
+    # Wyciągnięcie wszystkich zleceń
+    df = pd.read_sql("SELECT * FROM orders", conn)
+    conn.close()
+
+    if df.empty:
+        st.warning("No data available to display.")
+        return
+
+    # Wyświetlanie wszystkich zleceń
+    st.subheader("All Orders")
+    st.dataframe(df)
+
+    # Obliczanie średniej produkcji dziennej
+    df['date'] = pd.to_datetime(df['date'])
+    daily_average = df.groupby(df['date'].dt.date)['seal_count'].sum().mean()
+
+    st.subheader("📈 Average Daily Production")
+    st.metric(label="Average Daily Production", value=f"{daily_average:.2f} seals/day")
 
 
 def main():
-    st.sidebar.title("Production Manager App")
-    
+    st.set_page_config(page_title="Production Manager App", layout="wide")
+
     if 'authenticated' not in st.session_state:
         st.session_state.authenticated = False
         st.session_state.username = None
@@ -31,22 +53,21 @@ def main():
             st.sidebar.error("❌ Błędne dane logowania. Spróbuj ponownie.")
     else:
         st.sidebar.success(f"✅ Zalogowany jako: {st.session_state.username}")
-        menu = ["Formularz", "Raporty", "Wykresy", "Użytkownicy", "Import danych", "Wyloguj"]
-        choice = st.sidebar.selectbox("Nawigacja", menu)
 
-        if choice == "Formularz":
-            show_form("form_tab")  # Przekazywanie unikalnej nazwy zakładki
-        elif choice == "Raporty":
+        tabs = st.tabs(["Home", "Formularz", "Raporty", "Wykresy", "Użytkownicy", "Import danych"])
+
+        with tabs[0]:
+            show_home()
+        with tabs[1]:
+            show_form("form_tab")  
+        with tabs[2]:
             show_reports()
-        elif choice == "Wykresy":
+        with tabs[3]:
             show_charts()
-        elif choice == "Użytkownicy":
+        with tabs[4]:
             show_user_management()
-        elif choice == "Import danych":
+        with tabs[5]:
             show_import_data()
-        elif choice == "Wyloguj":
-            st.session_state.authenticated = False
-            st.session_state.username = None
 
 
 if __name__ == "__main__":
