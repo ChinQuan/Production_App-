@@ -4,6 +4,7 @@ import plotly.express as px
 from datetime import datetime, timedelta
 from modules.database import get_connection
 
+
 def format_time(seconds):
     if seconds < 60:
         return f"{int(seconds)} seconds"
@@ -12,9 +13,8 @@ def format_time(seconds):
         remaining_seconds = int(seconds % 60)
         return f"{minutes} minute{'s' if minutes > 1 else ''} {remaining_seconds} seconds"
 
-def calculate_average_time():
-    st.header("⏳ Advanced Production Analysis")
 
+def calculate_average_time():
     conn = get_connection()
     df = pd.read_sql("SELECT * FROM orders", conn)
     conn.close()
@@ -25,81 +25,16 @@ def calculate_average_time():
 
     df['date'] = pd.to_datetime(df['date'])
 
-    # 📅 Filter by Date Range
-    st.sidebar.header("📅 Filter by Date Range")
-    date_filter = st.sidebar.selectbox(
-        "Select Date Range",
-        ["Last Week", "Last Month", "Last Year", "Custom Range"]
-    )
+    daily_avg = df.groupby('date')['seal_count'].mean().reset_index()
 
-    if date_filter == "Last Week":
-        start_date = datetime.now() - timedelta(weeks=1)
-        end_date = datetime.now()
-    elif date_filter == "Last Month":
-        start_date = datetime.now() - timedelta(days=30)
-        end_date = datetime.now()
-    elif date_filter == "Last Year":
-        start_date = datetime.now() - timedelta(days=365)
-        end_date = datetime.now()
-    else:
-        start_date = st.sidebar.date_input("Start Date", value=datetime.now() - timedelta(days=30))
-        end_date = st.sidebar.date_input("End Date", value=datetime.now())
+    st.write("### Average Seal Count Per Day")
+    st.line_chart(daily_avg)
 
-    filtered_df = df[(df['date'] >= pd.to_datetime(start_date)) & (df['date'] <= pd.to_datetime(end_date))]
 
-    if filtered_df.empty:
-        st.write("No data available for the selected date range.")
-        return
+def show_form():
+    st.title("📋 Form Module")
 
-    st.write(f"Showing data from **{start_date.date()}** to **{end_date.date()}**")
+    st.header("⏳ Advanced Production Analysis")
+    calculate_average_time()
 
-    # 📊 Produktywność operatorów
-    with st.expander("📊 Productivity by Operator"):
-        operator_df = filtered_df.groupby('operator')[['seal_count', 'production_time']].sum().reset_index()
-
-        # 🔥 Usuwanie dni, gdzie produkcja była zerowa
-        operator_df = operator_df[operator_df['production_time'] > 0]
-
-        # 🔥 Sprawdzanie danych wejściowych po filtrowaniu
-        st.write("### Dane dotyczące operatorów (Po usunięciu zerowych produkcji)")
-        st.dataframe(operator_df)
-
-        # Obliczanie UPM na podstawie minut
-        operator_df['UPM'] = operator_df['seal_count'] / operator_df['production_time']
-
-        # Dodanie dodatkowej kolumny "Uszczelki na godzinę (SPH)"
-        operator_df['SPH'] = operator_df['UPM'] * 60  # Przeliczenie na godziny
-
-        # Wyświetlenie szczegółowej tabeli z UPM i SPH
-        st.write("### Dane z przeliczeniem UPM i SPH (Uszczelki na godzinę)")
-        st.dataframe(operator_df)
-
-        # Wizualizacja wykresu
-        fig1 = px.bar(operator_df, x='operator', y='SPH', title='Operator Productivity (SPH - Seals per Hour)')
-        st.plotly_chart(fig1)
-
-    # 📅 Produkcja na przestrzeni czasu
-    with st.expander("📈 Production Over Time"):
-        time_df = filtered_df.groupby('date')['seal_count'].sum().reset_index()
-        fig2 = px.line(time_df, x='date', y='seal_count', title='Production Over Time')
-        st.plotly_chart(fig2)
-
-    # 🏢 Produkcja per firma
-    with st.expander("🏢 Production by Company"):
-        company_df = filtered_df.groupby('company')['seal_count'].sum().reset_index()
-        fig3 = px.pie(company_df, names='company', values='seal_count', title='Production by Company')
-        st.plotly_chart(fig3)
-
-    # 🔩 Produkcja per typ uszczelki
-    with st.expander("🔩 Production by Seal Type"):
-        seal_type_df = filtered_df.groupby('seal_type')['seal_count'].sum().reset_index()
-        fig4 = px.bar(seal_type_df, x='seal_type', y='seal_count', title='Production by Seal Type')
-        st.plotly_chart(fig4)
-
-    # ⛔ Analiza przestojów
-    with st.expander("⛔ Downtime Analysis"):
-        downtime_df = filtered_df.groupby('downtime_reason')['downtime'].sum().reset_index()
-        fig5 = px.bar(downtime_df, x='downtime_reason', y='downtime', title='Downtime Reasons')
-        st.plotly_chart(fig5)
-
-    st.success("📊 Analysis successfully completed")
+    st.success("✅ Form module loaded successfully!")
