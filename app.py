@@ -6,7 +6,6 @@ st.set_page_config(page_title="Production Manager App", layout="wide")
 import bcrypt
 from modules.user_management import show_user_management, authenticate_user
 from modules.import_data import show_import_data
-from modules.form import show_form
 from modules.reports import show_reports
 from modules.charts import show_charts
 from modules.production_analysis import calculate_average_time  # Nowy moduł
@@ -54,21 +53,19 @@ def main():
     else:
         st.sidebar.success(f"✅ Zalogowany jako: {st.session_state.username}")
 
-        tabs = st.tabs(["Home", "Formularz", "Raporty", "Wykresy", "Użytkownicy", "Import danych", "Analiza Produkcji"])
+        tabs = st.tabs(["Home", "Raporty", "Wykresy", "Użytkownicy", "Import danych", "Analiza Produkcji"])
 
         with tabs[0]:
             show_home()
         with tabs[1]:
-            show_form("form_tab")  
-        with tabs[2]:
             show_reports()
-        with tabs[3]:
+        with tabs[2]:
             show_charts()
-        with tabs[4]:
+        with tabs[3]:
             show_user_management()
-        with tabs[5]:
+        with tabs[4]:
             show_import_data()
-        with tabs[6]:
+        with tabs[5]:
             calculate_average_time()
 
 
