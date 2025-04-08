@@ -1,4 +1,3 @@
-
 import streamlit as st
 
 # Ustawienie konfiguracji strony MUSI być pierwszą komendą Streamlit
@@ -32,9 +31,11 @@ def show_home():
     st.dataframe(df)
 
     df['date'] = pd.to_datetime(df['date'])
-    daily_average = df.groupby(df['date'].dt.date)['seal_count'].sum().mean()
+    # 🔥 Filtrowanie tylko dni roboczych (od poniedziałku do piątku)
+    working_days_df = df[df['date'].dt.dayofweek < 5]
+    daily_average = working_days_df.groupby(working_days_df['date'].dt.date)['seal_count'].sum().mean()
 
-    st.subheader("📈 Average Daily Production")
+    st.subheader("📈 Average Daily Production (Weekdays Only)")
     st.metric(label="Average Daily Production", value=f"{daily_average:.2f} seals/day")
 
 def main():
