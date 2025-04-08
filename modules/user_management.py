@@ -36,7 +36,41 @@ def authenticate_user():
         except Exception as e:
             st.sidebar.error(f"❌ Błąd logowania: {e}")
 
-        return None, None, False  # <- dodane wewnątrz if'a
+        return None, None, False
 
-    return None, None, False  # <- dodane poza if'em, jeśli przycisk NIE został kliknięty
+    return None, None, False
 
+
+def show_user_management(role):
+    if role != 'Admin':
+        st.error('❌ Brak uprawnień do zarządzania użytkownikami.')
+        return
+
+    st.subheader('👤 Zarządzanie użytkownikami')
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Wyświetlenie wszystkich użytkowników
+    cursor.execute('SELECT username, role FROM users')
+    users = cursor.fetchall()
+    st.write('### Lista użytkowników')
+    st.dataframe(users, use_container_width=True)
+
+    # Dodawanie nowego użytkownika
+    st.sidebar.header('Dodaj nowego użytkownika')
+    new_username = st.sidebar.text_input('Nazwa użytkownika (nowy)')
+    new_password = st.sidebar.text_input('Hasło (nowe)', type='password')
+    new_role = st.sidebar.selectbox('Rola', ['Admin', 'Operator'])
+
+    if st.sidebar.button('Dodaj użytkownika'):
+        try:
+            hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            cursor.execute('INSERT INTO users (username, password, role) VALUES (%s, %s, %s)', (new_username, hashed_password, new_role))
+            conn.commit()
+            st.success(f'✅ Użytkownik {new_username} dodany pomyślnie!')
+        except Exception as e:
+            st.error(f'❌ Wystąpił błąd podczas dodawania użytkownika: {e}')
+
+    cursor.close()
+    conn.close()
