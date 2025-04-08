@@ -65,4 +65,3 @@ def show_user_management(current_role):
                 st.experimental_rerun()
             except Exception as e:
                 st.error(f"❌ Failed to create user: {e}")
-
