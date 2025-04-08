@@ -1,67 +1,63 @@
 import streamlit as st
-import psycopg2
-import bcrypt
+import json
+import os
+import hashlib
 
-def get_connection():
-    conn = psycopg2.connect(
-        host=st.secrets["postgres"]["host"],
-        database=st.secrets["postgres"]["database"],
-        user=st.secrets["postgres"]["user"],
-        password=st.secrets["postgres"]["password"],
-        port=st.secrets["postgres"]["port"]
-    )
-    return conn
+USERS_FILE = "users.json"
 
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def load_users():
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r") as file:
+            return json.load(file)
+    return {}
+
+def save_users(users):
+    with open(USERS_FILE, "w") as file:
+        json.dump(users, file, indent=4)
 
 def authenticate_user():
-    st.sidebar.subheader("🔑 Logowanie")
-    username = st.sidebar.text_input("Nazwa użytkownika")
-    password = st.sidebar.text_input("Hasło", type="password")
-    
-    if st.sidebar.button("Zaloguj"):
-        try:
-            conn = get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT username, password FROM users WHERE username = %s", (username,))
-            result = cursor.fetchone()
+    st.sidebar.title("🔐 Login")
 
-            if result:
-                db_username, hashed_password = result
-                if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-                    return username, True
-                else:
-                    st.sidebar.error("❌ Nieprawidłowe hasło.")
-            else:
-                st.sidebar.error("❌ Użytkownik nie istnieje.")
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
 
-            cursor.close()
-            conn.close()
-        except Exception as e:
-            st.sidebar.error(f"❌ Wystąpił błąd podczas logowania: {e}")
+    users = load_users()
+    hashed_password = hash_password(password)
 
-    return None, False
+    if st.sidebar.button("Login"):
+        if username in users and users[username]["password"] == hashed_password:
+            st.success("✅ Login successful")
+            return username, users[username]["role"], True
+        else:
+            st.error("❌ Login failed: invalid credentials")
 
+    return None, None, False
 
-def show_user_management():
-    st.subheader("User Management")
+def show_user_management(role):
+    st.header("👥 User Management")
 
-    # Dodawanie nowego użytkownika
-    st.sidebar.header("Add New User")
-    new_username = st.sidebar.text_input("Nazwa użytkownika (nowy)")
-    new_password = st.sidebar.text_input("Hasło (nowe)", type="password")
+    users = load_users()
+    st.subheader("📋 User List")
+    user_list = [[user, users[user]["role"]] for user in users]
+    st.json(user_list)
 
-    if st.sidebar.button("Dodaj użytkownika"):
-        try:
-            conn = get_connection()
-            cursor = conn.cursor()
+    st.subheader("➕ Add New User")
 
-            hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (new_username, hashed_password))
-            conn.commit()
+    new_username = st.text_input("New Username")
+    new_password = st.text_input("New Password", type="password")
+    new_role = st.selectbox("Role", ["Admin", "Operator"])
 
-            st.sidebar.success(f"✅ Użytkownik {new_username} został dodany.")
-
-            cursor.close()
-            conn.close()
-        except Exception as e:
-            st.sidebar.error(f"❌ Wystąpił błąd podczas dodawania użytkownika: {e}")
+    if st.button("Create User"):
+        if new_username in users:
+            st.warning("⚠️ This username already exists.")
+        else:
+            users[new_username] = {
+                "password": hash_password(new_password),
+                "role": new_role
+            }
+            save_users(users)
+            st.success(f"✅ User `{new_username}` created successfully.")
+            st.experimental_rerun()
