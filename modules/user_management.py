@@ -12,6 +12,7 @@ def get_connection():
     )
     return conn
 
+
 def authenticate_user():
     st.sidebar.subheader("🔑 Logowanie")
     username = st.sidebar.text_input("Nazwa użytkownika")
@@ -39,6 +40,7 @@ def authenticate_user():
             st.sidebar.error(f"❌ Wystąpił błąd podczas logowania: {e}")
 
     return None, False
+
 
 def show_user_management():
     st.subheader("User Management")
