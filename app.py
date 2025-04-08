@@ -2,6 +2,7 @@
 
 import streamlit as st
 st.set_page_config(page_title="Production Manager App", layout="wide")
+
 import pandas as pd
 from modules.user_management import authenticate_user, show_user_management
 from modules.import_data import show_import_data
@@ -14,21 +15,36 @@ from modules.form import show_form, show_home
 
 
 def main():
-    username, role, authenticated = authenticate_user()
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+        st.session_state.username = None
+        st.session_state.role = None
 
-    if not authenticated:
-        st.warning("🔒 Please log in to access the app.")
-        return
-
-    if username is None or role is None:
-        st.error("❌ Authentication failed: missing user data.")
-        return
+    if not st.session_state.authenticated:
+        username, role, authenticated = authenticate_user()
+        if authenticated:
+            st.session_state.authenticated = True
+            st.session_state.username = username
+            st.session_state.role = role
+        else:
+            st.warning("🔒 Please log in to access the app.")
+            return
+    else:
+        username = st.session_state.username
+        role = st.session_state.role
 
     st.sidebar.markdown(f"## 👤 Logged in as {role}: `{username}`")
 
+    if st.sidebar.button("🚪 Logout"):
+        st.session_state.authenticated = False
+        st.session_state.username = None
+        st.session_state.role = None
+        st.experimental_rerun()
+
     menu = ["Add Order", "Reports", "Charts"]
     if role == "Admin":
-        menu += ["User Management", "Edit Orders"]
+        menu.append("User Management")
+        menu.append("Edit Orders")
 
     tab = st.sidebar.radio("📂 Navigation", menu)
 
@@ -50,14 +66,14 @@ def main():
         show_edit_orders()
 
 def show_edit_orders():
-    st.title("📋 Edit Orders")
+    st.title('📋 Edit Orders')
 
     conn = get_connection()
     df = pd.read_sql("SELECT * FROM orders", conn)
     conn.close()
 
     if df.empty:
-        st.warning("⚠️ No orders available.")
+        st.warning("No data available for editing.")
         return
 
     st.dataframe(df)
@@ -72,6 +88,9 @@ def show_edit_orders():
         conn.close()
         st.success("✅ Order deleted successfully.")
         st.experimental_rerun()
+
+if __name__ == '__main__':
+    main()
 
 if __name__ == "__main__":
     main()
