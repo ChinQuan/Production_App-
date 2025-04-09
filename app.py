@@ -1,4 +1,8 @@
 import streamlit as st
+import psycopg2
+import pandas as pd
+from decouple import config
+
 from modules.user_management import authenticate_user
 from modules.reports import show_reports
 from modules.charts import show_charts
@@ -7,12 +11,10 @@ from modules.calculator import show_calculator
 from modules.database import get_orders_df
 from modules.analysis import calculate_average_time
 
-#to potem skasowac 
-import streamlit as st
-import psycopg2
-import pandas as pd
-from decouple import config
+st.set_page_config(page_title="Production Manager App", layout="wide")
 
+# 🔧 Tymczasowa funkcja do debugowania bazy danych
+# Można skomentować lub usunąć po potwierdzeniu działania bazy
 def debug_users():
     st.header("🛠 Debug: Users Table")
 
@@ -35,13 +37,9 @@ def debug_users():
     except Exception as e:
         st.error(f"❌ Failed to fetch users:\n\n{e}")
 
-# 🔧 Tymczasowo uruchom to w aplikacji:
-debug_users()
-
+# debug_users()  # Odkomentuj jeśli chcesz przetestować połączenie z bazą
 
 def main():
-    st.set_page_config(page_title="Production Manager App", layout="wide")
-
     if 'authenticated' not in st.session_state:
         st.session_state.authenticated = False
 
@@ -78,10 +76,7 @@ def main():
     elif choice == "Edit Orders" and role == "Admin":
         st.warning("🛠 Edit Orders view coming soon.")
 
-
 if __name__ == "__main__":
     main()
-
-
 
 
