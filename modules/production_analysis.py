@@ -69,8 +69,8 @@ def calculate_average_time(df):
 
     for seal_type in seal_types:
         filtered_type_df = filtered_df[filtered_df['seal_type'] == seal_type]  # Updated column name here
-        total_time = filtered_type_df['production_time'].sum()  # Correct column name
-        total_seals = filtered_type_df['seal_count'].sum()  # Correct column name
+        total_time = filtered_type_df['production_time'].sum()  # Correct column name here
+        total_seals = filtered_type_df['seal_count'].sum()  # Correct column name here
 
         if total_seals > 0:
             avg_time = (total_time / total_seals) * 60
@@ -91,8 +91,8 @@ def calculate_average_time(df):
 
     for company in companies:
         filtered_company_df = filtered_df[filtered_df['company'] == company]
-        total_time = filtered_company_df['production_time'].sum()  # Correct column name
-        total_seals = filtered_company_df['seal_count'].sum()  # Correct column name
+        total_time = filtered_company_df['production_time'].sum()  # Correct column name here
+        total_seals = filtered_company_df['seal_count'].sum()  # Correct column name here
 
         if total_seals > 0:
             avg_time = (total_time / total_seals) * 60
@@ -113,8 +113,8 @@ def calculate_average_time(df):
 
     for operator in operators:
         filtered_operator_df = filtered_df[filtered_df['operator'] == operator]
-        total_time = filtered_operator_df['production_time'].sum()  # Correct column name
-        total_seals = filtered_operator_df['seal_count'].sum()  # Correct column name
+        total_time = filtered_operator_df['production_time'].sum()  # Correct column name here
+        total_seals = filtered_operator_df['seal_count'].sum()  # Correct column name here
 
         if total_seals > 0:
             avg_time = (total_time / total_seals) * 60
