@@ -12,8 +12,8 @@ def show_reports(df):
     st.subheader("Current Production Orders")
     st.dataframe(df)
 
-    # Calculate and show the average daily production (Working days only)
-    df['Date'] = pd.to_datetime(df['date'])
+    # Ensure the 'date' column is in datetime format
+    df['Date'] = pd.to_datetime(df['date'], errors='coerce')
     df['Day'] = df['Date'].dt.date
 
     # Avg. Daily Production (Working Days Only)
@@ -25,5 +25,3 @@ def show_reports(df):
     # Avg. Daily Production (Order Dates Only)
     avg_daily_production_order = df['seal_count'].sum() / len(df['Day'].unique())
     st.markdown(f"### Avg. Daily Production (Order Dates Only): {avg_daily_production_order:.2f} seals per day")
-
-    )
