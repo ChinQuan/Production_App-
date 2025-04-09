@@ -15,7 +15,7 @@ def show_charts(df):
     col1, col2, col3 = st.columns(3)
     col1.metric("📦 Total Orders", total_orders)
     col2.metric("🧷 Total Seals", total_seals)
-    col3.metric("⏱️ Avg. Time", f"{avg_time:.1f} min")
+    col3.metric("⏱️ Avg. Time", f"{avg_time:.1f} min" if pd.notnull(avg_time) else "N/A")
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(
@@ -27,7 +27,6 @@ def show_charts(df):
     fig.update_layout(title="Seals per Order", xaxis_title="Order", yaxis_title="Seals")
     st.plotly_chart(fig, use_container_width=True)
 
-    # Dodajemy tabelę z wszystkimi zleceniami
+    # Tabela ze zleceniami
     st.subheader("📋 All Production Orders")
     st.dataframe(df)
-
