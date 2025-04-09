@@ -1,5 +1,6 @@
 import streamlit as st
 st.set_page_config(page_title="Production Manager App", layout="wide")
+
 from modules.user_management import authenticate_user
 from modules.reports import show_reports
 from modules.charts import show_charts
@@ -7,10 +8,9 @@ from modules.form import show_form
 from modules.calculator import show_calculator
 from modules.database import get_orders_df
 from modules.analysis import calculate_average_time
+from modules.edit_orders import show_edit_orders  # Dodane tutaj
 
 def main():
-    
-
     # Authentication
     if 'authenticated' not in st.session_state:
         st.session_state.authenticated = False
@@ -46,7 +46,8 @@ def main():
     elif choice == "Analysis":
         calculate_average_time(df)
     elif choice == "Edit Orders" and role == "Admin":
-        st.warning("🛠 Edit Orders view coming soon.")
+        show_edit_orders(df)
 
 if __name__ == "__main__":
     main()
+
