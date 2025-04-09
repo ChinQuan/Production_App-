@@ -79,8 +79,4 @@ def main():
     elif choice == "Edit Orders" and role == "Admin":
         st.warning("🛠 Edit Orders view coming soon.")
 
-
-# 🔧 Tymczasowo odpalamy debug panel z tabelą users
-if __name__ == "__main__":
-    debug_users()
     main()
