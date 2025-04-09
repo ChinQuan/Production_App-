@@ -18,15 +18,17 @@ def show_charts(df):
         if selected_company != "All":
             df = df[df["company"] == selected_company]
 
-    # Obsługa production_time
+    # Konwersja production_time i seal_count do liczbowych
     if "production_time" in df.columns:
-        try:
-            df["production_time"] = pd.to_numeric(df["production_time"], errors="coerce")
-        except Exception as e:
-            st.error(f"Error converting production_time: {e}")
+        df["production_time"] = pd.to_numeric(df["production_time"], errors="coerce")
+    if "seal_count" in df.columns:
+        df["seal_count"] = pd.to_numeric(df["seal_count"], errors="coerce")
+
+    # Usuwamy wiersze z pustymi wartościami seal_count
+    df = df.dropna(subset=["seal_count"])
 
     total_orders = len(df)
-    total_seals = df["seal_count"].sum() if "seal_count" in df.columns else 0
+    total_seals = df["seal_count"].sum()
     avg_time = df["production_time"].mean() if "production_time" in df.columns else None
 
     col1, col2, col3 = st.columns(3)
@@ -34,15 +36,15 @@ def show_charts(df):
     col2.metric("🧷 Total Seals", total_seals)
     col3.metric("⏱️ Avg. Time", f"{avg_time:.1f} min" if pd.notnull(avg_time) else "N/A")
 
-    if "seal_count" in df.columns:
+    if "seal_count" in df.columns and "id" in df.columns:
         fig = go.Figure()
         fig.add_trace(go.Scatter(
-            x=df.index,
+            x=df["id"],
             y=df["seal_count"],
             mode='lines+markers',
             name='Seals'
         ))
-        fig.update_layout(title="Seals per Order", xaxis_title="Order", yaxis_title="Seals")
+        fig.update_layout(title="Seals per Order", xaxis_title="Order ID", yaxis_title="Seals")
         st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("📋 Filtered Production Orders")
