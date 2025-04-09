@@ -126,3 +126,4 @@ def calculate_average_time(df):
         columns=['Operator', 'Average Time per Seal', 'Seals Produced per Minute (UPM)']
     )
     st.table(operator_df)
+
