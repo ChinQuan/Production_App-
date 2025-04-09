@@ -3,10 +3,10 @@ from modules.user_management import authenticate_user
 from modules.reports import show_reports
 from modules.charts import show_charts
 from modules.form import show_form
-from modules.user_admin import show_user_management
 from modules.calculator import show_calculator
 from modules.database import get_orders_df
 from modules.analysis import calculate_average_time
+
 
 def main():
     st.set_page_config(page_title="Production Manager App", layout="wide")
@@ -28,7 +28,7 @@ def main():
     st.sidebar.title("Navigation")
     menu = ["Dashboard", "Reports", "Add Order", "Calculator", "Analysis"]
     if role == "Admin":
-        menu.extend(["User Management", "Edit Orders"])
+        menu.extend(["Edit Orders"])
 
     choice = st.sidebar.radio("Go to", menu)
 
@@ -44,10 +44,9 @@ def main():
         show_calculator(df)
     elif choice == "Analysis":
         calculate_average_time(df)
-    elif choice == "User Management" and role == "Admin":
-        show_user_management()
     elif choice == "Edit Orders" and role == "Admin":
         st.warning("🛠 Edit Orders view coming soon.")
+
 
 if __name__ == "__main__":
     main()
