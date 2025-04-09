@@ -8,14 +8,14 @@ def show_edit_orders(df):
         st.warning("No data available for editing.")
         return
 
-    # Display all orders with DataFrame index
+    # Display all orders
     st.subheader("📋 All Orders")
     st.dataframe(df)
 
-    # Reset index for consistent reference
+    # Reset index for selection
     df = df.reset_index(drop=True)
 
-    # Select order by index
+    # Select by index
     st.subheader("🔍 Select Order to Edit or Delete")
     selected_index = st.selectbox("Select order by index", df.index.tolist())
 
@@ -25,8 +25,13 @@ def show_edit_orders(df):
         st.error(f"Invalid index selected: {selected_index}")
         return
 
+    # Convert date column to datetime if not already
+    if not pd.api.types.is_datetime64_any_dtype(df["date"]):
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+
     # Edit form
     with st.form("edit_order_form"):
+        date = st.date_input("Date", value=selected_order["date"].date() if pd.notna(selected_order["date"]) else pd.to_datetime("today").date())
         company = st.text_input("Company", value=selected_order.get("company", ""))
         operator = st.text_input("Operator", value=selected_order.get("operator", ""))
         seal_type = st.text_input("Seal Type", value=selected_order.get("seal_type", ""))
@@ -39,6 +44,7 @@ def show_edit_orders(df):
         submitted = st.form_submit_button("💾 Save Changes")
 
         if submitted:
+            df.at[selected_index, "date"] = pd.to_datetime(date)
             df.at[selected_index, "company"] = company
             df.at[selected_index, "operator"] = operator
             df.at[selected_index, "seal_type"] = seal_type
@@ -56,4 +62,4 @@ def show_edit_orders(df):
         df.drop(index=selected_index, inplace=True)
         df.reset_index(drop=True, inplace=True)
         st.success(f"🗑 Order at index {selected_index} has been deleted.")
-        st.experimental_rerun()  # Refresh the app to reflect changes
+        st.experimental_rerun()
