@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from modules.database import load_data, save_data
+from modules.database import get_orders_df, update_order, delete_order
 
 def show_edit_orders(df):
     st.header("📝 Edit Orders")
