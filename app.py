@@ -19,7 +19,7 @@ def main():
     if st.sidebar.button("🚪 Logout"):
         for key in ["authenticated", "username", "role"]:
             st.session_state.pop(key, None)
-        st.experimental_rerun()
+        st.rerun()
 
     # Logowanie
     if not st.session_state.authenticated:
@@ -28,7 +28,7 @@ def main():
             st.session_state.authenticated = True
             st.session_state.username = username
             st.session_state.role = role
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.stop()
 
@@ -57,3 +57,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
