@@ -28,7 +28,7 @@ def main():
     role = st.session_state.get("role", "User")
     st.sidebar.title("Navigation")
     menu = [
-        "📊 Dashboard","Dashboard", "Reports", "Add Order", "Calculator", "Analysis"]
+        "📈 Charts","Dashboard", "Reports", "Add Order", "Calculator", "Analysis"]
     if role == "Admin":
         menu.append("Edit Orders")
 
