@@ -11,13 +11,14 @@ def show_edit_orders(df):
         return
 
     st.subheader("📋 All Orders")
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(df.drop(columns=["id"]), use_container_width=True)
 
     index_options = df.index.tolist()
     selected_index = st.selectbox("Select Row Index to Edit", index_options)
 
     try:
         selected_order = df.loc[selected_index]
+        order_id = int(selected_order["id"])  # używamy ID do aktualizacji/usuwania
     except KeyError:
         st.error("Selected index not found.")
         return
@@ -44,16 +45,15 @@ def show_edit_orders(df):
                 "production_time": production_time,
             }
             try:
-                update_order(selected_index, updated_order)
+                update_order(order_id, updated_order)
                 st.success("Order updated successfully!")
             except Exception as e:
                 st.error(f"❌ Failed to update order:\n{e}")
 
-    # Opcja usuwania zlecenia
     st.markdown("---")
     if st.button("🗑️ Delete This Order"):
         try:
-            delete_order(selected_index)
+            delete_order(order_id)
             st.success("Order deleted successfully!")
         except Exception as e:
             st.error(f"❌ Failed to delete order:\n{e}")
