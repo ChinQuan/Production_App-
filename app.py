@@ -21,7 +21,7 @@ def main():
             st.session_state.authenticated = True
             st.session_state.username = username
             st.session_state.role = role
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.stop()
 
