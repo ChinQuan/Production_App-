@@ -60,3 +60,27 @@ def insert_order(order_data):
     except Exception as e:
         st.error(f"❌ Failed to insert order:\n\n{e}")
         return False
+        # 🔐 Get user details by username
+def get_user_by_username(username):
+    config = st.secrets["postgres"]
+
+    try:
+        conn = psycopg2.connect(
+            host=config["host"],
+            database=config["database"],
+            user=config["user"],
+            password=config["password"],
+            port=config["port"],
+            sslmode=config["sslmode"]
+        )
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        query = "SELECT * FROM users WHERE username = %s"
+        cursor.execute(query, (username,))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return user
+    except Exception as e:
+        st.error(f"❌ Failed to fetch user:\n\n{e}")
+        return None
+
