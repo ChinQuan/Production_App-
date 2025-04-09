@@ -1,7 +1,0 @@
-streamlit
-pandas
-plotly
-openpyxl
-psycopg2-binary
-bcrypt
-streamlit-aggrid
