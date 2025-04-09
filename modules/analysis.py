@@ -1,4 +1,3 @@
-# modules/analysis.py
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
@@ -18,11 +17,16 @@ def calculate_average_time(df):
         st.write("No data available to calculate average production time.")
         return
 
-    if 'Date' not in df.columns:
+    # Sprawdzamy, czy kolumna 'Date' lub 'date' istnieje w danych
+    if 'date' not in df.columns and 'Date' not in df.columns:
         st.write("Date column not found in data.")
         return
 
-    df['Date'] = pd.to_datetime(df['Date'])
+    # Upewniamy się, że kolumna 'Date' lub 'date' jest w formacie datetime
+    if 'date' in df.columns:
+        df['Date'] = pd.to_datetime(df['date'], errors='coerce')
+    else:
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
 
     st.sidebar.header("🗓 Filter by Date Range")
     date_filter = st.sidebar.selectbox(
@@ -51,13 +55,11 @@ def calculate_average_time(df):
 
     st.write(f"Showing data from **{start_date.date()}** to **{end_date.date()}**")
 
-    st.markdown("""
-        <style>
-        table td, table th {
-            text-align: center !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    st.markdown("""<style>
+    table td, table th {
+        text-align: center !important;
+    }
+    </style>""", unsafe_allow_html=True)
 
     seal_types = filtered_df['Seal Type'].unique()
     average_times = {}
