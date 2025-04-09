@@ -1,18 +1,16 @@
 import streamlit as st
-import pandas as pd
 import plotly.graph_objs as go
 
 def show_charts(df):
     st.title("📊 Production Dashboard")
 
-    df = pd.DataFrame(st.session_state.get("orders", []))
     if df.empty:
         st.warning("No orders to display.")
         return
 
     total_orders = len(df)
-    total_seals = df["Seals"].sum()
-    avg_time = df["Time (min)"].mean()
+    total_seals = df["seal_count"].sum()
+    avg_time = df["production_time"].mean()
 
     col1, col2, col3 = st.columns(3)
     col1.metric("📦 Total Orders", total_orders)
@@ -21,11 +19,10 @@ def show_charts(df):
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=df["Order ID"],
-        y=df["Seals"],
+        x=df.index,
+        y=df["seal_count"],
         mode='lines+markers',
         name='Seals'
     ))
-    fig.update_layout(title="Seals per Order", xaxis_title="Order ID", yaxis_title="Seals")
+    fig.update_layout(title="Seals per Order", xaxis_title="Order", yaxis_title="Seals")
     st.plotly_chart(fig, use_container_width=True)
-# Placeholder for charts.py
