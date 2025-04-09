@@ -36,11 +36,11 @@ def main():
     df = get_orders_df()
 
     if choice == "Dashboard":
-        show_charts()
+        show_charts(df)
     elif choice == "Reports":
-        show_reports()
+        show_reports(df)
     elif choice == "Add Order":
-        show_form()
+        show_form(df)
     elif choice == "Calculator":
         show_calculator(df)
     elif choice == "Analysis":
