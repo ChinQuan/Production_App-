@@ -17,8 +17,8 @@ def show_reports(df):
     df['Day'] = df['Date'].dt.date
 
     # Avg. Daily Production (Working Days Only)
-    working_days = df.groupby('Day').sum()
-    avg_daily_production = working_days['seal_count'].mean()
+    working_days = df.groupby('Day')['seal_count'].sum()
+    avg_daily_production = working_days.mean()
     
     st.markdown(f"### Avg. Daily Production (Working Days Only): {avg_daily_production:.2f} seals per day")
 
