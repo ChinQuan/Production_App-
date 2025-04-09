@@ -69,8 +69,8 @@ def calculate_average_time(df):
 
     for seal_type in seal_types:
         filtered_type_df = filtered_df[filtered_df['seal_type'] == seal_type]
-        total_time = filtered_type_df['production_time'].sum()
-        total_seals = filtered_type_df['seal_count'].sum()
+        total_time = filtered_type_df['production_time'].sum()  # Używamy production_time
+        total_seals = filtered_type_df['seal_count'].sum()  # Używamy seal_count
 
         if total_seals > 0:
             avg_time = (total_time / total_seals) * 60
