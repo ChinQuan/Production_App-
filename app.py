@@ -1,59 +1,61 @@
 import streamlit as st
 import pandas as pd
+
 from modules.user_management import authenticate_user, show_user_management
-from modules.form import show_form
 from modules.reports import show_reports
 from modules.charts import show_charts
-from modules.edit_orders import show_edit_orders
-
-st.set_page_config(page_title="Production Manager", layout="wide")
+from modules.form import show_form
+from modules.calculator import show_calculator
+from modules.database import get_orders_df
 
 def main():
-    # Inicjalizacja sesji
+    st.set_page_config(page_title="Production Manager App", layout="wide")
+
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
         st.session_state.username = None
         st.session_state.role = None
 
-    # Wylogowanie
     if st.sidebar.button("🚪 Logout"):
         for key in ["authenticated", "username", "role"]:
             st.session_state.pop(key, None)
-        st.rerun()
+        st.experimental_rerun()
 
-    # Logowanie
     if not st.session_state.authenticated:
         username, role, authenticated = authenticate_user()
         if authenticated:
             st.session_state.authenticated = True
             st.session_state.username = username
             st.session_state.role = role
-            st.rerun()
         else:
-            st.stop()
+            st.warning("🔒 Please log in to access the app.")
+            return
+    else:
+        username = st.session_state.username
+        role = st.session_state.role
 
-    role = st.session_state.role
-    username = st.session_state.username
+    st.sidebar.markdown(f"## 👤 Logged in as {role}: `{username}`")
 
-    # Pasek boczny
-    st.sidebar.markdown(f"## 👋 Hello, `{username}` ({role})")
-    menu = ["Dashboard", "Reports", "Add Order", "Edit Orders"]
+    menu = ["Add Order", "Reports", "Charts", "Calculator"]
     if role == "Admin":
-        menu.append("User Management")
+        menu.extend(["User Management", "Edit Orders"])
 
-    choice = st.sidebar.radio("Go to:", menu)
+    choice = st.sidebar.radio("📂 Navigation", menu)
 
-    # Nawigacja
-    if choice == "Dashboard":
-        show_charts()
+    df = get_orders_df()  # załaduj dane produkcyjne z bazy lub session_state
+
+    if choice == "Add Order":
+        show_form()
     elif choice == "Reports":
         show_reports()
-    elif choice == "Add Order":
-        show_form()
-    elif choice == "Edit Orders":
-        show_edit_orders()
-    elif choice == "User Management":
+    elif choice == "Charts":
+        show_charts()
+    elif choice == "Calculator":
+        show_calculator(df)
+    elif choice == "User Management" and role == "Admin":
         show_user_management()
+    elif choice == "Edit Orders" and role == "Admin":
+        st.warning("🛠 Edit Orders view coming soon.")
 
 if __name__ == "__main__":
     main()
