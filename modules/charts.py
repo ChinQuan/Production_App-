@@ -26,3 +26,8 @@ def show_charts(df):
     ))
     fig.update_layout(title="Seals per Order", xaxis_title="Order", yaxis_title="Seals")
     st.plotly_chart(fig, use_container_width=True)
+
+    # Dodajemy tabelę z wszystkimi zleceniami
+    st.subheader("📋 All Production Orders")
+    st.dataframe(df)
+
