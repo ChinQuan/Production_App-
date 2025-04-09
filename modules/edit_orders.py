@@ -5,32 +5,24 @@ def show_edit_orders(df):
     st.title("✏️ Edit Orders")
 
     if df.empty:
-        st.warning("No orders available to edit.")
+        st.warning("No orders available.")
         return
 
-    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    # Wyświetl ramkę z wszystkimi zleceniami
+    st.subheader("📋 All Orders")
+    st.dataframe(df)
 
-    st.subheader("🔍 Select Order to Edit")
-    selected_date = st.selectbox("Select Date", df['date'].dt.date.unique())
-    filtered_by_date = df[df['date'].dt.date == selected_date]
+    # Wybór zlecenia po ID
+    st.subheader("🔍 Select Order by ID")
+    selected_id = st.selectbox("Select Order ID", df['id'].unique())
 
-    if filtered_by_date.empty:
-        st.warning("No orders on selected date.")
-        return
-
-    selected_operator = st.selectbox("Select Operator", filtered_by_date['operator'].unique())
-    filtered_operator_df = filtered_by_date[filtered_by_date['operator'] == selected_operator]
-
-    if filtered_operator_df.empty:
-        st.warning("No orders for selected operator.")
-        return
-
-    order = filtered_operator_df.iloc[0]
+    # Znajdź rekord
+    order = df[df['id'] == selected_id].iloc[0]
 
     with st.form("edit_order_form"):
-        st.write("Edit the fields below:")
+        st.write(f"📝 Editing Order ID: {selected_id}")
 
-        date = st.date_input("Date", value=order.get('date', pd.to_datetime('today')).date())
+        date = st.date_input("Date", value=pd.to_datetime(order.get('date')))
         company = st.text_input("Company", value=order.get('company', ''))
         operator = st.text_input("Operator", value=order.get('operator', ''))
         seal_type = st.text_input("Seal Type", value=order.get('seal_type', ''))
@@ -44,6 +36,7 @@ def show_edit_orders(df):
 
         if submitted:
             updated_order = {
+                "id": selected_id,
                 "date": date,
                 "company": company,
                 "operator": operator,
@@ -56,5 +49,6 @@ def show_edit_orders(df):
             }
 
             st.success("✅ Order updated successfully!")
-            st.write("🔁 Implement DB update logic here")
+            st.write("🛠 Now update the database or file with this data:")
             st.json(updated_order)
+
