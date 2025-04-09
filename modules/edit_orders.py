@@ -8,40 +8,52 @@ def show_edit_orders(df):
         st.warning("No data available for editing.")
         return
 
-    # Show the full DataFrame
+    # Display all orders with DataFrame index
     st.subheader("📋 All Orders")
     st.dataframe(df)
 
-    # Make sure the index is named for clarity
-    df = df.reset_index(drop=False)
+    # Reset index for consistent reference
+    df = df.reset_index(drop=True)
 
-    # Select based on DataFrame index
-    st.subheader("🔍 Select Order to Edit (by index)")
-    selected_index = st.selectbox("Select DataFrame Index", df.index.tolist())
+    # Select order by index
+    st.subheader("🔍 Select Order to Edit or Delete")
+    selected_index = st.selectbox("Select order by index", df.index.tolist())
 
-    selected_order = df.loc[selected_index]
+    try:
+        selected_order = df.loc[selected_index]
+    except KeyError:
+        st.error(f"Invalid index selected: {selected_index}")
+        return
 
     # Edit form
     with st.form("edit_order_form"):
-        company = st.text_input("Company", value=selected_order["company"])
-        operator = st.text_input("Operator", value=selected_order["operator"])
-        seal_type = st.text_input("Seal Type", value=selected_order["seal_type"])
-        profile = st.text_input("Profile", value=selected_order["profile"])
-        seal_count = st.number_input("Seal Count", value=int(selected_order["seal_count"]))
-        production_time = st.number_input("Production Time (minutes)", value=float(selected_order["production_time"]))
-        downtime = st.number_input("Downtime (minutes)", value=float(selected_order["downtime"]))
-        downtime_reason = st.text_input("Downtime Reason", value=selected_order["downtime_reason"])
+        company = st.text_input("Company", value=selected_order.get("company", ""))
+        operator = st.text_input("Operator", value=selected_order.get("operator", ""))
+        seal_type = st.text_input("Seal Type", value=selected_order.get("seal_type", ""))
+        profile = st.text_input("Profile", value=selected_order.get("profile", ""))
+        seal_count = st.number_input("Seal Count", value=int(selected_order.get("seal_count", 0)))
+        production_time = st.number_input("Production Time (min)", value=float(selected_order.get("production_time", 0)))
+        downtime = st.number_input("Downtime (min)", value=float(selected_order.get("downtime", 0)))
+        downtime_reason = st.text_input("Downtime Reason", value=selected_order.get("downtime_reason", ""))
 
         submitted = st.form_submit_button("💾 Save Changes")
 
         if submitted:
-            df.at[selected_index, 'company'] = company
-            df.at[selected_index, 'operator'] = operator
-            df.at[selected_index, 'seal_type'] = seal_type
-            df.at[selected_index, 'profile'] = profile
-            df.at[selected_index, 'seal_count'] = seal_count
-            df.at[selected_index, 'production_time'] = production_time
-            df.at[selected_index, 'downtime'] = downtime
-            df.at[selected_index, 'downtime_reason'] = downtime_reason
+            df.at[selected_index, "company"] = company
+            df.at[selected_index, "operator"] = operator
+            df.at[selected_index, "seal_type"] = seal_type
+            df.at[selected_index, "profile"] = profile
+            df.at[selected_index, "seal_count"] = seal_count
+            df.at[selected_index, "production_time"] = production_time
+            df.at[selected_index, "downtime"] = downtime
+            df.at[selected_index, "downtime_reason"] = downtime_reason
 
             st.success(f"✅ Order at index {selected_index} has been updated.")
+
+    # Delete functionality
+    st.markdown("---")
+    if st.button("🗑 Delete Selected Order"):
+        df.drop(index=selected_index, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        st.success(f"🗑 Order at index {selected_index} has been deleted.")
+        st.experimental_rerun()  # Refresh the app to reflect changes
