@@ -1,8 +1,6 @@
-# modules/analysis.py
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
-from modules.database import get_orders_df
 
 def format_time(seconds):
     if seconds < 60:
@@ -12,20 +10,25 @@ def format_time(seconds):
         remaining_seconds = int(seconds % 60)
         return f"{minutes} minute{'s' if minutes > 1 else ''} {remaining_seconds} seconds"
 
-def calculate_average_time():
+def calculate_average_time(df):
     st.header("⏳ Average Production Time Analysis")
-
-    df = get_orders_df()
 
     if df.empty:
         st.write("No data available to calculate average production time.")
         return
 
-    if 'Date' not in df.columns:
+    # Sprawdzamy, czy kolumna 'date' istnieje w danych
+    if 'date' not in df.columns:
         st.write("Date column not found in data.")
         return
 
-    df['Date'] = pd.to_datetime(df['Date'])
+    # Upewniamy się, że kolumna 'date' jest w formacie datetime
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+
+    # Sprawdzamy, czy kolumna 'seal_type' istnieje w danych
+    if 'seal_type' not in df.columns:
+        st.write("Seal Type column not found in data.")
+        return
 
     st.sidebar.header("🗓 Filter by Date Range")
     date_filter = st.sidebar.selectbox(
@@ -46,7 +49,7 @@ def calculate_average_time():
         start_date = st.sidebar.date_input("Start Date", value=datetime.now() - timedelta(days=30))
         end_date = st.sidebar.date_input("End Date", value=datetime.now())
 
-    filtered_df = df[(df['Date'] >= pd.to_datetime(start_date)) & (df['Date'] <= pd.to_datetime(end_date))]
+    filtered_df = df[(df['date'] >= pd.to_datetime(start_date)) & (df['date'] <= pd.to_datetime(end_date))]
 
     if filtered_df.empty:
         st.write("No data available for the selected date range.")
@@ -54,21 +57,20 @@ def calculate_average_time():
 
     st.write(f"Showing data from **{start_date.date()}** to **{end_date.date()}**")
 
-    st.markdown("""
-        <style>
-        table td, table th {
-            text-align: center !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    st.markdown("""<style>
+    table td, table th {
+        text-align: center !important;
+    }
+    </style>""", unsafe_allow_html=True)
 
-    seal_types = filtered_df['Seal Type'].unique()
+    # Przypisujemy odpowiednie kolumny
+    seal_types = filtered_df['seal_type'].unique()
     average_times = {}
 
     for seal_type in seal_types:
-        filtered_type_df = filtered_df[filtered_df['Seal Type'] == seal_type]
-        total_time = filtered_type_df['Production Time'].sum()
-        total_seals = filtered_type_df['Seal Count'].sum()
+        filtered_type_df = filtered_df[filtered_df['seal_type'] == seal_type]
+        total_time = filtered_type_df['production_time'].sum()
+        total_seals = filtered_type_df['seal_count'].sum()
 
         if total_seals > 0:
             avg_time = (total_time / total_seals) * 60
@@ -84,13 +86,13 @@ def calculate_average_time():
     )
     st.table(result_df)
 
-    companies = filtered_df['Company'].unique()
+    companies = filtered_df['company'].unique()
     company_times = {}
 
     for company in companies:
-        filtered_company_df = filtered_df[filtered_df['Company'] == company]
-        total_time = filtered_company_df['Production Time'].sum()
-        total_seals = filtered_company_df['Seal Count'].sum()
+        filtered_company_df = filtered_df[filtered_df['company'] == company]
+        total_time = filtered_company_df['production_time'].sum()
+        total_seals = filtered_company_df['seal_count'].sum()
 
         if total_seals > 0:
             avg_time = (total_time / total_seals) * 60
@@ -106,13 +108,13 @@ def calculate_average_time():
     )
     st.table(company_df)
 
-    operators = filtered_df['Operator'].unique()
+    operators = filtered_df['operator'].unique()
     operator_times = {}
 
     for operator in operators:
-        filtered_operator_df = filtered_df[filtered_df['Operator'] == operator]
-        total_time = filtered_operator_df['Production Time'].sum()
-        total_seals = filtered_operator_df['Seal Count'].sum()
+        filtered_operator_df = filtered_df[filtered_df['operator'] == operator]
+        total_time = filtered_operator_df['production_time'].sum()
+        total_seals = filtered_operator_df['seal_count'].sum()
 
         if total_seals > 0:
             avg_time = (total_time / total_seals) * 60
@@ -126,4 +128,4 @@ def calculate_average_time():
         [(operator, avg[0], avg[1]) for operator, avg in operator_times.items()],
         columns=['Operator', 'Average Time per Seal', 'Seals Produced per Minute (UPM)']
     )
-    st.table(operator_df)# Placeholder for production_analysis.py
+    st.table(operator_df)
