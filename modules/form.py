@@ -1,57 +1,60 @@
+# modules/form.py
+
 import streamlit as st
-from datetime import date
+import datetime
+from modules.database import insert_order
 
 def show_form():
-    st.header("📝 Add Production Order")
+    st.header("➕ Add New Production Order")
 
-    with st.form("order_form"):
-        production_date = st.date_input("Production Date", value=date.today())
-        company = st.text_input("Company Name")
+    with st.form("order_form", clear_on_submit=True):
+        production_date = st.date_input("Production Date", value=datetime.date.today())
+        company = st.text_input("Company")
         operator = st.text_input("Operator")
-
+        
         seal_type = st.selectbox("Seal Type", [
-            "STANDARD SOFT", "STANDARD HARD", "CUSTOM SOFT",
-            "CUSTOM HARD", "SPECIAL", "V-RINGS", "STACK"
+            "STANDARD SOFT", "STANDARD HARD",
+            "CUSTOM SOFT", "CUSTOM HARD",
+            "SPECIAL", "V-RINGS", "STACK"
         ])
 
+        seal_profile = ""
         if seal_type == "STACK":
-            seal_profile = st.text_input("Stack Composition (e.g., 1x Type A + 2x Type B)", key="stack_profile")
+            seal_profile = st.text_area("Stack Composition (e.g. 1xA + 2xB)", height=100)
         else:
-            seal_profile = st.text_input("Enter Seal Profile (e.g., Profile A, Profile B)", key="standard_profile")
+            seal_profile = st.text_input("Seal Profile")
 
-        seals = st.number_input("Number of Seals", min_value=0, step=1)
-        production_time = st.number_input("Production Time (Minutes)", min_value=0.0, step=1.0)
-        downtime = st.number_input("Downtime (Minutes)", min_value=0.0, step=1.0)
-        downtime_reason = st.text_input("Reason for Downtime") if downtime > 0 else ""
+        seals = st.number_input("Seal Count", min_value=1, step=1)
+        production_time = st.number_input("Production Time (in minutes)", min_value=1)
+        downtime = st.number_input("Downtime (in minutes)", min_value=0)
+        downtime_reason = st.text_area("Downtime Reason (if any)")
 
-        submitted = st.form_submit_button("💾 Save Entry")
+        submitted = st.form_submit_button("Submit")
 
-        if submitted:
-            if not company or not operator:
-                st.error("Company and Operator fields are required.")
-                st.stop()
+    if submitted:
+        if not company or not operator:
+            st.error("Company and Operator fields are required.")
+            st.stop()
 
-            if seal_type == "STACK" and not seal_profile:
-                st.error("Please specify the stack composition.")
-                st.stop()
+        if seal_type == "STACK" and not seal_profile:
+            st.error("Please specify the stack composition.")
+            st.stop()
 
-            if downtime > 0 and not downtime_reason:
-                st.warning("You entered downtime minutes but no reason. Please consider adding a reason.")
+        if downtime > 0 and not downtime_reason:
+            st.warning("You entered downtime minutes but no reason. Please consider adding a reason.")
 
-            # Store entry in session_state (simulate saving)
-            if "orders" not in st.session_state:
-                st.session_state.orders = []
-
-            st.session_state.orders.append({
-                "date": str(production_date),
-                "company": company,
-                "operator": operator,
-                "seal_type": seal_type,
-                "seal_profile": seal_profile,
-                "seals": seals,
-                "time_min": production_time,
-                "downtime": downtime,
-                "reason": downtime_reason,
-            })
-
-            st.success(f"✅ Order for {operator} saved successfully!")
+        try:
+            insert_order(
+                production_date=str(production_date),
+                company=company,
+                operator=operator,
+                seal_type=seal_type,
+                seal_profile=seal_profile,
+                seals=seals,
+                production_time=production_time,
+                downtime=downtime,
+                reason=downtime_reason,
+            )
+            st.success(f"✅ Order for {operator} saved to the database!")
+        except Exception as e:
+            st.error(f"❌ Failed to save order:\n\n{e}")
