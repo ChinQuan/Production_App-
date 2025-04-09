@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-def show_reports():
+def show_reports(df):
     st.title("📊 Reports & Export")
 
     # Wczytanie danych z CSV
