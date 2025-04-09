@@ -46,7 +46,9 @@ def show_edit_orders(df):
             value=float(selected_order["downtime"]),
             min_value=0.0,
         )
-        downtime_reason = st.text_input("Downtime Reason", value=selected_order["downtime_reason"])
+        downtime_reason = st.text_input(
+            "Downtime Reason", value=selected_order["downtime_reason"]
+        )
 
         submitted = st.form_submit_button("Update Order")
 
