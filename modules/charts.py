@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objs as go
 
-def show_charts():
+def show_charts(df):
     st.title("📊 Production Dashboard")
 
     df = pd.DataFrame(st.session_state.get("orders", []))
