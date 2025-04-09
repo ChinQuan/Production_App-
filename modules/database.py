@@ -88,3 +88,4 @@ def get_user_by_username(username):
     except Exception as e:
         st.error(f"❌ Failed to fetch user:\n\n{e}")
         return None
+
