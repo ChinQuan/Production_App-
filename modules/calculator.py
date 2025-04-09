@@ -59,18 +59,19 @@ def show_calculator(df):
         st.error("🚫 No production data available. Add entries first.")
         return
 
-    seal_types = df['Seal Type'].unique().tolist()
-    companies = df['Company'].unique().tolist()
+    # Zmienione nazwy kolumn
+    seal_types = df['seal_type'].unique().tolist()
+    companies = df['company'].unique().tolist()
 
     selected_company = st.selectbox("Select Company", companies)
     selected_seal_type = st.selectbox("Select Seal Type", seal_types)
     order_quantity = st.number_input("Order Quantity", min_value=1, step=1)
 
-    filtered_df = df[(df['Seal Type'] == selected_seal_type) & (df['Company'] == selected_company)]
+    filtered_df = df[(df['seal_type'] == selected_seal_type) & (df['company'] == selected_company)]
 
     if not filtered_df.empty:
-        total_production_time = filtered_df['Production Time'].sum()
-        total_seals = filtered_df['Seal Count'].sum()
+        total_production_time = filtered_df['production_time'].sum()
+        total_seals = filtered_df['seal_count'].sum()
 
         if total_seals > 0:
             average_time_per_seal = total_production_time / total_seals
