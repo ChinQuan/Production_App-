@@ -2,7 +2,6 @@ import streamlit as st
 from modules.user_management import authenticate_user
 from modules.reports import show_reports
 from modules.charts import show_charts
-from modules.production_analysis import show_analysis
 from modules.form import show_form
 from modules.user_admin import show_user_management
 from modules.calculator import show_calculator
