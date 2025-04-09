@@ -1,19 +1,39 @@
 import streamlit as st
 import pandas as pd
+from io import BytesIO
 
 def show_reports():
     st.title("📊 Reports & Export")
 
-    df = pd.DataFrame(st.session_state.get("orders", []))
-    if df.empty:
-        st.warning("No data available.")
+    # Wczytanie danych z CSV
+    try:
+        df = pd.read_csv("orders.csv")
+    except FileNotFoundError:
+        st.warning("Brak danych do wyświetlenia. Dodaj zamówienia, aby wygenerować raport.")
         return
 
     st.dataframe(df)
 
+    # Eksport do CSV
     csv = df.to_csv(index=False).encode("utf-8")
-    excel = df.to_excel(index=False, engine="openpyxl")
 
-    st.download_button("⬇️ Download CSV", csv, "orders.csv", "text/csv")
-    st.download_button("⬇️ Download Excel", excel, "orders.xlsx")
-# Placeholder for reports.py
+    # Eksport do Excel
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Orders")
+    excel_data = output.getvalue()
+
+    # Przyciski pobierania
+    st.download_button(
+        "⬇️ Download CSV", 
+        data=csv, 
+        file_name="orders.csv", 
+        mime="text/csv"
+    )
+
+    st.download_button(
+        "⬇️ Download Excel", 
+        data=excel_data, 
+        file_name="orders.xlsx", 
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
