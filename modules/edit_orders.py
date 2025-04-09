@@ -29,9 +29,9 @@ def show_edit_orders(df):
         )
         company = st.text_input("Company", value=selected_order.get("company", ""))
         operator = st.text_input("Operator", value=selected_order.get("operator", ""))
-        profile = st.text_input("Profile", value=selected_order.get("profile", ""))
-        product = st.text_input("Product", value=selected_order.get("product", ""))
-        comments = st.text_area("Comments", value=selected_order.get("comments", ""))
+        seal_type = st.text_input("Seal Type", value=selected_order.get("seal_type", ""))
+        seal_count = st.number_input("Seal Count", value=selected_order.get("seal_count", 0), step=1)
+        production_time = st.text_input("Production Time", value=selected_order.get("production_time", ""))
 
         submitted = st.form_submit_button("Save Changes")
         if submitted:
@@ -39,9 +39,21 @@ def show_edit_orders(df):
                 "date": date,
                 "company": company,
                 "operator": operator,
-                "profile": profile,
-                "product": product,
-                "comments": comments,
+                "seal_type": seal_type,
+                "seal_count": seal_count,
+                "production_time": production_time,
             }
-            update_order(selected_index, updated_order)
-            st.success("Order updated successfully!")
+            try:
+                update_order(selected_index, updated_order)
+                st.success("Order updated successfully!")
+            except Exception as e:
+                st.error(f"❌ Failed to update order:\n{e}")
+
+    # Opcja usuwania zlecenia
+    st.markdown("---")
+    if st.button("🗑️ Delete This Order"):
+        try:
+            delete_order(selected_index)
+            st.success("Order deleted successfully!")
+        except Exception as e:
+            st.error(f"❌ Failed to delete order:\n{e}")
