@@ -8,48 +8,40 @@ def show_edit_orders(df):
         st.warning("No data available for editing.")
         return
 
-    # Display the full orders table
+    # Show the full DataFrame
     st.subheader("📋 All Orders")
     st.dataframe(df)
 
-    # Check if 'id' column exists
-    if 'id' not in df.columns:
-        st.error("The 'id' column was not found in the data.")
-        return
+    # Make sure the index is named for clarity
+    df = df.reset_index(drop=False)
 
-    # Select an order by ID
-    st.subheader("🔍 Select Order to Edit")
-    selected_id = st.selectbox("Select Order ID", df['id'].tolist())
+    # Select based on DataFrame index
+    st.subheader("🔍 Select Order to Edit (by index)")
+    selected_index = st.selectbox("Select DataFrame Index", df.index.tolist())
 
-    selected_order = df[df['id'] == selected_id]
-
-    if selected_order.empty:
-        st.warning("No order found for the selected ID.")
-        return
-
-    order = selected_order.iloc[0]
+    selected_order = df.loc[selected_index]
 
     # Edit form
     with st.form("edit_order_form"):
-        company = st.text_input("Company", value=order["company"])
-        operator = st.text_input("Operator", value=order["operator"])
-        seal_type = st.text_input("Seal Type", value=order["seal_type"])
-        profile = st.text_input("Profile", value=order["profile"])
-        seal_count = st.number_input("Seal Count", value=int(order["seal_count"]))
-        production_time = st.number_input("Production Time (minutes)", value=float(order["production_time"]))
-        downtime = st.number_input("Downtime (minutes)", value=float(order["downtime"]))
-        downtime_reason = st.text_input("Downtime Reason", value=order["downtime_reason"])
+        company = st.text_input("Company", value=selected_order["company"])
+        operator = st.text_input("Operator", value=selected_order["operator"])
+        seal_type = st.text_input("Seal Type", value=selected_order["seal_type"])
+        profile = st.text_input("Profile", value=selected_order["profile"])
+        seal_count = st.number_input("Seal Count", value=int(selected_order["seal_count"]))
+        production_time = st.number_input("Production Time (minutes)", value=float(selected_order["production_time"]))
+        downtime = st.number_input("Downtime (minutes)", value=float(selected_order["downtime"]))
+        downtime_reason = st.text_input("Downtime Reason", value=selected_order["downtime_reason"])
 
         submitted = st.form_submit_button("💾 Save Changes")
 
         if submitted:
-            df.loc[df['id'] == selected_id, 'company'] = company
-            df.loc[df['id'] == selected_id, 'operator'] = operator
-            df.loc[df['id'] == selected_id, 'seal_type'] = seal_type
-            df.loc[df['id'] == selected_id, 'profile'] = profile
-            df.loc[df['id'] == selected_id, 'seal_count'] = seal_count
-            df.loc[df['id'] == selected_id, 'production_time'] = production_time
-            df.loc[df['id'] == selected_id, 'downtime'] = downtime
-            df.loc[df['id'] == selected_id, 'downtime_reason'] = downtime_reason
+            df.at[selected_index, 'company'] = company
+            df.at[selected_index, 'operator'] = operator
+            df.at[selected_index, 'seal_type'] = seal_type
+            df.at[selected_index, 'profile'] = profile
+            df.at[selected_index, 'seal_count'] = seal_count
+            df.at[selected_index, 'production_time'] = production_time
+            df.at[selected_index, 'downtime'] = downtime
+            df.at[selected_index, 'downtime_reason'] = downtime_reason
 
-            st.success(f"✅ Order with ID {selected_id} has been updated.")
+            st.success(f"✅ Order at index {selected_index} has been updated.")
