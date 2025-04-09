@@ -88,7 +88,7 @@ def calculate_average_time(df):
     )
     st.table(result_df)
 
-    companies = filtered_df['Company'].unique()
+    companies = filtered_df['company'].unique()
     company_times = {}
 
     for company in companies:
