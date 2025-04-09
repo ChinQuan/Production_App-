@@ -7,42 +7,11 @@ from modules.form import show_form
 from modules.calculator import show_calculator
 from modules.database import get_orders_df
 from modules.analysis import calculate_average_time
-import psycopg2
-import pandas as pd
-
-# 🔧 Debug panel – tymczasowe sprawdzanie połączenia z bazą
-
-def debug_users():
-    st.header("🛠 Debug: Users Table")
-
-    try:
-        config = st.secrets["postgres"]
-
-        conn = psycopg2.connect(
-            host=config["host"],
-            database=config["database"],
-            user=config["user"],
-            password=config["password"],
-            port=config["port"],
-            sslmode=config["sslmode"]
-        )
-        query = "SELECT * FROM users"
-        df = pd.read_sql_query(query, conn)
-        conn.close()
-
-        st.success("✅ Connected to database!")
-        st.dataframe(df)
-
-    except Exception as e:
-        st.error(f"❌ Failed to fetch users:\n\n{e}")
-
-
-# 🧠 Logika główna aplikacji
 
 def main():
     
 
-    # 🔐 Logowanie
+    # Authentication
     if 'authenticated' not in st.session_state:
         st.session_state.authenticated = False
 
@@ -79,4 +48,5 @@ def main():
     elif choice == "Edit Orders" and role == "Admin":
         st.warning("🛠 Edit Orders view coming soon.")
 
+if __name__ == "__main__":
     main()
