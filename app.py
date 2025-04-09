@@ -1,3 +1,4 @@
+
 import streamlit as st
 st.set_page_config(page_title="Production Manager App", layout="wide")
 
@@ -8,7 +9,7 @@ from modules.form import show_form
 from modules.calculator import show_calculator
 from modules.database import get_orders_df
 from modules.analysis import calculate_average_time
-from modules.edit_orders import show_edit_orders  # Dodane tutaj
+from modules.edit_orders import show_edit_orders
 
 def main():
     # Authentication
@@ -28,27 +29,38 @@ def main():
     role = st.session_state.get("role", "User")
     st.sidebar.title("Navigation")
     menu = [
-        "📈 Charts","Dashboard", "Reports", "Add Order", "Calculator", "Analysis"]
-    if role == "Admin":
-        menu.append("Edit Orders")
+        "📈 Charts",
+        "📊 Dashboard",
+        "Reports",
+        "Add Order",
+        "Calculator",
+        "Analysis",
+        "Edit Orders"
+    ]
+    selected = st.sidebar.radio("Go to", menu)
 
-    choice = st.sidebar.radio("Go to", menu)
-
-    df = get_orders_df()
-
-    if choice == "Dashboard":
+    if selected == "📈 Charts":
+        df = get_orders_df()
         show_charts(df)
-    elif choice == "Reports":
-        show_reports(df)
-    elif choice == "Add Order":
+
+    elif selected == "📊 Dashboard":
+        st.write("🚧 Dashboard placeholder")
+
+    elif selected == "Reports":
+        show_reports()
+
+    elif selected == "Add Order":
         show_form()
-    elif choice == "Calculator":
-        show_calculator(df)
-    elif choice == "Analysis":
-        calculate_average_time(df)
-    elif choice == "Edit Orders" and role == "Admin":
+
+    elif selected == "Calculator":
+        show_calculator()
+
+    elif selected == "Analysis":
+        calculate_average_time()
+
+    elif selected == "Edit Orders":
+        df = get_orders_df()
         show_edit_orders(df)
 
 if __name__ == "__main__":
     main()
-
