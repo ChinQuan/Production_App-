@@ -1,4 +1,6 @@
 import streamlit as st
+
+st.set_page_config(page_title="Production Manager App", layout="wide")
 import psycopg2
 import pandas as pd
 from decouple import config
@@ -36,7 +38,6 @@ def debug_users():
 # 🔧 Tymczasowo uruchom to w aplikacji (możesz skasować poniższą linię jak już nie będzie potrzebna)
 debug_users()
 
-st.set_page_config(page_title="Production Manager App", layout="wide")
 
 def main():
     if 'authenticated' not in st.session_state:
