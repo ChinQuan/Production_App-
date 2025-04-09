@@ -1,8 +1,9 @@
 import streamlit as st
+import pandas as pd
 import plotly.graph_objs as go
 
 def show_charts(df):
-    st.title("📊 Production Dashboard")
+    st.title("📈 Charts")
 
     if df.empty:
         st.warning("No orders to display.")
@@ -27,6 +28,5 @@ def show_charts(df):
     fig.update_layout(title="Seals per Order", xaxis_title="Order", yaxis_title="Seals")
     st.plotly_chart(fig, use_container_width=True)
 
-    # Tabela ze zleceniami
     st.subheader("📋 All Production Orders")
     st.dataframe(df)
