@@ -50,3 +50,37 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+#to potem skasowac 
+import streamlit as st
+import psycopg2
+import pandas as pd
+from decouple import config
+
+def debug_users():
+    st.header("🛠 Debug: Users Table")
+
+    try:
+        conn = psycopg2.connect(
+            host=config("POSTGRES_HOST"),
+            database=config("POSTGRES_DB"),
+            user=config("POSTGRES_USER"),
+            password=config("POSTGRES_PASSWORD"),
+            port=config("POSTGRES_PORT"),
+            sslmode=config("POSTGRES_SSLMODE")
+        )
+        query = "SELECT * FROM users"
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+
+        st.success("✅ Connected to database!")
+        st.dataframe(df)
+
+    except Exception as e:
+        st.error(f"❌ Failed to fetch users:\n\n{e}")
+
+# 🔧 Tymczasowo uruchom to w aplikacji:
+debug_users()
