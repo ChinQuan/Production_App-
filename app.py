@@ -11,10 +11,6 @@ from modules.calculator import show_calculator
 from modules.database import get_orders_df
 from modules.analysis import calculate_average_time
 
-st.set_page_config(page_title="Production Manager App", layout="wide")
-
-# 🔧 Tymczasowa funkcja do debugowania bazy danych
-# Można skomentować lub usunąć po potwierdzeniu działania bazy
 def debug_users():
     st.header("🛠 Debug: Users Table")
 
@@ -37,7 +33,10 @@ def debug_users():
     except Exception as e:
         st.error(f"❌ Failed to fetch users:\n\n{e}")
 
-# debug_users()  # Odkomentuj jeśli chcesz przetestować połączenie z bazą
+# 🔧 Tymczasowo uruchom to w aplikacji (możesz skasować poniższą linię jak już nie będzie potrzebna)
+debug_users()
+
+st.set_page_config(page_title="Production Manager App", layout="wide")
 
 def main():
     if 'authenticated' not in st.session_state:
@@ -78,5 +77,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
