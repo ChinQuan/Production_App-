@@ -1,39 +1,29 @@
 import streamlit as st
 import pandas as pd
-from io import BytesIO
 
 def show_reports(df):
     st.title("📊 Reports & Export")
 
-    # Wczytanie danych z CSV
-    try:
-        df = pd.read_csv("orders.csv")
-    except FileNotFoundError:
-        st.warning("Brak danych do wyświetlenia. Dodaj zamówienia, aby wygenerować raport.")
+    if df.empty:
+        st.warning("No data to display. Add some orders to generate report.")
         return
 
+    # Example of a simple report table
+    st.subheader("Current Production Orders")
     st.dataframe(df)
 
-    # Eksport do CSV
-    csv = df.to_csv(index=False).encode("utf-8")
+    # Calculate and show the average daily production (Working days only)
+    df['Date'] = pd.to_datetime(df['date'])
+    df['Day'] = df['Date'].dt.date
 
-    # Eksport do Excel
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Orders")
-    excel_data = output.getvalue()
+    # Avg. Daily Production (Working Days Only)
+    working_days = df.groupby('Day').sum()
+    avg_daily_production = working_days['seal_count'].mean()
+    
+    st.markdown(f"### Avg. Daily Production (Working Days Only): {avg_daily_production:.2f} seals per day")
 
-    # Przyciski pobierania
-    st.download_button(
-        "⬇️ Download CSV", 
-        data=csv, 
-        file_name="orders.csv", 
-        mime="text/csv"
-    )
+    # Avg. Daily Production (Order Dates Only)
+    avg_daily_production_order = df['seal_count'].sum() / len(df['Day'].unique())
+    st.markdown(f"### Avg. Daily Production (Order Dates Only): {avg_daily_production_order:.2f} seals per day")
 
-    st.download_button(
-        "⬇️ Download Excel", 
-        data=excel_data, 
-        file_name="orders.xlsx", 
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
