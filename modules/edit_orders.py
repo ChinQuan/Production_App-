@@ -25,48 +25,23 @@ def show_edit_orders(df):
     with st.form("edit_order_form"):
         date = st.date_input(
             "Date",
-            value=pd.to_datetime(selected_order["date"]).date()
-            if pd.notna(selected_order["date"])
-            else datetime.today().date(),
+            value=pd.to_datetime(selected_order.get("date", datetime.today())).date()
         )
-        company = st.text_input("Company", value=selected_order["company"])
-        operator = st.text_input("Operator", value=selected_order["operator"])
-        seal_type = st.text_input("Seal Type", value=selected_order["seal_type"])
-        profile = st.text_input("Profile", value=selected_order["profile"])
-        seal_count = st.number_input(
-            "Seal Count", value=int(selected_order["seal_count"]), min_value=0
-        )
-        production_time = st.number_input(
-            "Production Time (minutes)",
-            value=float(selected_order["production_time"]),
-            min_value=0.0,
-        )
-        downtime = st.number_input(
-            "Downtime (minutes)",
-            value=float(selected_order["downtime"]),
-            min_value=0.0,
-        )
-        downtime_reason = st.text_input(
-            "Downtime Reason", value=selected_order["downtime_reason"]
-        )
+        company = st.text_input("Company", value=selected_order.get("company", ""))
+        operator = st.text_input("Operator", value=selected_order.get("operator", ""))
+        profile = st.text_input("Profile", value=selected_order.get("profile", ""))
+        product = st.text_input("Product", value=selected_order.get("product", ""))
+        comments = st.text_area("Comments", value=selected_order.get("comments", ""))
 
-        submitted = st.form_submit_button("Update Order")
-
+        submitted = st.form_submit_button("Save Changes")
         if submitted:
-            update_order(
-                order_id=selected_order["id"],
-                date=date,
-                company=company,
-                operator=operator,
-                seal_type=seal_type,
-                profile=profile,
-                seal_count=seal_count,
-                production_time=production_time,
-                downtime=downtime,
-                downtime_reason=downtime_reason,
-            )
+            updated_order = {
+                "date": date,
+                "company": company,
+                "operator": operator,
+                "profile": profile,
+                "product": product,
+                "comments": comments,
+            }
+            update_order(selected_index, updated_order)
             st.success("Order updated successfully!")
-
-    if st.button("🗑 Delete This Order"):
-        delete_order(selected_order["id"])
-        st.success("Order deleted.")
