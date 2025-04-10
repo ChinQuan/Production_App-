@@ -4,3 +4,5 @@ openpyxl
 streamlit-aggrid
 plotly
 psycopg2-binary
+bcrypt
+
