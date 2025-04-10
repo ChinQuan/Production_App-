@@ -28,7 +28,7 @@ def authenticate_user():
             conn.close()
 
             if user:
-                try:
+    try:
         if bcrypt.checkpw(password.encode(), user["password"].encode()):
             role = user["role"]
             st.success(f"✅ Welcome, {username} ({role})")
