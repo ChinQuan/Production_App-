@@ -1,3 +1,4 @@
+import bcrypt
 # modules/user_management.py
 import streamlit as st
 import psycopg2
@@ -27,7 +28,7 @@ def authenticate_user():
             conn.close()
 
             if user:
-                if password == user["password"]:  # ⚠️ You can switch to bcrypt here later
+                if bcrypt.checkpw(password.encode(), user["password"].encode()):  # ⚠️ You can switch to bcrypt here later
                     role = user["role"]
                     st.success(f"✅ Welcome, {username} ({role})")
                     return username, role
