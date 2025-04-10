@@ -5,69 +5,41 @@ from modules.reports import show_reports
 from modules.charts import show_charts
 from modules.form import show_form
 from modules.calculator import show_calculator
-from modules.database import get_orders_df
-from modules.analysis import calculate_average_time
-from modules.edit_orders import show_edit_orders
+from modules.user_admin import show_user_admin
+from modules.average_production import show_avg_production_time
 
-# Set page config
 
+
+# Sidebar navigation
+st.sidebar.title("📊 Menu")
+page = st.sidebar.radio("Go to", ["Home", "Production Charts", "Calculator", "User Management", "Reports", "Average Production Time"])
 
 # User authentication
-if 'authenticated' not in st.session_state:
-    st.session_state.authenticated = False
+auth_result = authenticate_user()
+if auth_result:
+    username, role = auth_result
 
-if not st.session_state.authenticated:
-    username, role = authenticate_user()
-    if username:
-        st.session_state.authenticated = True
-        st.session_state.username = username
-        st.session_state.role = role
+    # Sidebar info
+    st.sidebar.success(f"Logged in as {username} ({role})")
+    if st.sidebar.button("Logout"):
+        st.cache_data.clear()
         st.rerun()
-    else:
-        st.stop()
 
-# Main layout
-st.title("📊 Production Manager App")
-st.markdown("---")
-
-# Top navigation bar
-tabs = ["Dashboard", "Reports", "Add Order", "Calculator", "Analysis"]
-if st.session_state.role == "Admin":
-    tabs.append("Edit Orders")
-
-selected_tab = st.selectbox("📁 Nawigacja", tabs, key="top_nav")
-
-# Load data from database
-df = get_orders_df()
-
-# Show column names for debugging
-st.write("📋 Kolumny danych:", df.columns.tolist())
-
-# Display dashboard with KPIs
-if selected_tab == "Dashboard":
-    st.subheader("📈 Kluczowe metryki produkcyjne")
-    col1, col2 = st.columns(2)
-
-    if 'date' in df.columns:
-        latest_date = df['date'].max()
-        orders_today = df[df['date'] == latest_date].shape[0]
-    else:
-        orders_today = "Brak danych"
-
-    col1.metric("Zlecenia dziś", orders_today)
-    col2.metric("Średni czas realizacji", "4h 12m")  # Placeholder
-
-    st.markdown("---")
-    st.subheader("📊 Wykresy")
-    show_charts(df)
-
-elif selected_tab == "Reports":
-    show_reports(df)
-elif selected_tab == "Add Order":
-    show_form()
-elif selected_tab == "Calculator":
-    show_calculator(df)
-elif selected_tab == "Analysis":
-    calculate_average_time(df)
-elif selected_tab == "Edit Orders":
-    show_edit_orders(df)
+    # Navigation logic
+    if page == "Home":
+        st.title("🏠 Production Data Overview")
+    elif page == "Production Charts":
+        show_charts()
+    elif page == "Calculator":
+        show_calculator()
+    elif page == "User Management":
+        if role == "admin":
+            show_user_admin()
+        else:
+            st.warning("You do not have access to this page.")
+    elif page == "Reports":
+        show_reports()
+    elif page == "Average Production Time":
+        show_avg_production_time()
+else:
+    st.warning("Please log in to access the app.")
