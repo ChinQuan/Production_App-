@@ -1,9 +1,9 @@
+
 import streamlit as st
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import bcrypt
 
-# 🔐 User authentication using PostgreSQL
 def authenticate_user():
     st.title("🔐 Login")
 
@@ -29,16 +29,14 @@ def authenticate_user():
             if user:
                 try:
                     if bcrypt.checkpw(password.encode(), user["password"].encode()):
-                        role = user["role"]
-                        st.success(f"✅ Welcome, {username} ({role})")
-                        return username, role
-                except ValueError:
+                        st.success("✅ Login successful")
+                        return username, user["role"]
+                except Exception:
                     if password == user["password"]:
-                        role = user["role"]
-                        st.success(f"✅ Welcome, {username} ({role})")
-                        return username, role
+                        st.success("✅ Login successful (plaintext)")
+                        return username, user["role"]
 
             st.error("Invalid username or password")
 
         except Exception as e:
-            st.error(f"Database connection failed: {e}")
+            st.error(f"Database error: {e}")
