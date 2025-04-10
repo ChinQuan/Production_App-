@@ -40,14 +40,29 @@ selected_tab = st.selectbox("📁 Nawigacja", tabs, key="top_nav")
 # Load data from database
 df = get_orders_df()
 
+# Show column names for debugging
+st.write("📋 Kolumny danych:", df.columns.tolist())
+
 # Display dashboard with KPIs
 if selected_tab == "Dashboard":
     st.subheader("📈 Kluczowe metryki produkcyjne")
     col1, col2, col3 = st.columns(3)
-    col1.metric("Zlecenia dziś", df[df['data'] == df['data'].max()].shape[0])
+
+    if 'data' in df.columns:
+        orders_today = df[df['data'] == df['data'].max()].shape[0]
+    else:
+        orders_today = "Brak danych"
+
+    col1.metric("Zlecenia dziś", orders_today)
     col2.metric("Średni czas realizacji", "4h 12m")  # Placeholder
-    col3.metric("Całkowity koszt", f"{df['koszt'].sum():,.0f} zł")
-    
+
+    if 'koszt' in df.columns:
+        total_cost = f"{df['koszt'].sum():,.0f} zł"
+    else:
+        total_cost = "Brak danych"
+
+    col3.metric("Całkowity koszt", total_cost)
+
     st.markdown("---")
     st.subheader("📊 Wykresy")
     show_charts(df)
@@ -62,4 +77,6 @@ elif selected_tab == "Analysis":
     calculate_average_time(df)
 elif selected_tab == "Edit Orders":
     show_edit_orders(df)
+
+
 
