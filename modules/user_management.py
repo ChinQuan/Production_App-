@@ -28,10 +28,16 @@ def authenticate_user():
             conn.close()
 
             if user:
-                if bcrypt.checkpw(password.encode(), user["password"].encode()):  # ⚠️ You can switch to bcrypt here later
-                    role = user["role"]
-                    st.success(f"✅ Welcome, {username} ({role})")
-                    return username, role
+                try:
+        if bcrypt.checkpw(password.encode(), user["password"].encode()):
+            role = user["role"]
+            st.success(f"✅ Welcome, {username} ({role})")
+            return username, role
+    except ValueError:
+        if password == user["password"]:
+            role = user["role"]
+            st.success(f"✅ Welcome, {username} ({role})")
+            return username, role
                 else:
                     st.error("❌ Incorrect password.")
             else:
