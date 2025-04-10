@@ -1,5 +1,4 @@
 import streamlit as st
-st.set_page_config(page_title="Production Manager App", layout="wide")
 from modules.user_management import authenticate_user
 from modules.reports import show_reports
 from modules.charts import show_charts
@@ -8,7 +7,7 @@ from modules.calculator import show_calculator
 from modules.user_admin import show_user_admin
 from modules.average_production import show_avg_production_time
 
-
+st.set_page_config(page_title="Production Manager App", layout="wide")
 
 # Sidebar navigation
 st.sidebar.title("📊 Menu")
