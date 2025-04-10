@@ -1,5 +1,4 @@
 import streamlit as st
-st.set_page_config(page_title="Production Manager App", layout="wide")
 from modules.user_management import authenticate_user
 from modules.reports import show_reports
 from modules.charts import show_charts
@@ -10,7 +9,7 @@ from modules.analysis import calculate_average_time
 from modules.edit_orders import show_edit_orders
 
 # Set page config
-
+st.set_page_config(page_title="Production Manager App", layout="wide")
 
 # User authentication
 if 'authenticated' not in st.session_state:
@@ -46,22 +45,16 @@ st.write("📋 Kolumny danych:", df.columns.tolist())
 # Display dashboard with KPIs
 if selected_tab == "Dashboard":
     st.subheader("📈 Kluczowe metryki produkcyjne")
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
 
-    if 'data' in df.columns:
-        orders_today = df[df['data'] == df['data'].max()].shape[0]
+    if 'date' in df.columns:
+        latest_date = df['date'].max()
+        orders_today = df[df['date'] == latest_date].shape[0]
     else:
         orders_today = "Brak danych"
 
     col1.metric("Zlecenia dziś", orders_today)
     col2.metric("Średni czas realizacji", "4h 12m")  # Placeholder
-
-    if 'koszt' in df.columns:
-        total_cost = f"{df['koszt'].sum():,.0f} zł"
-    else:
-        total_cost = "Brak danych"
-
-    col3.metric("Całkowity koszt", total_cost)
 
     st.markdown("---")
     st.subheader("📊 Wykresy")
@@ -77,6 +70,5 @@ elif selected_tab == "Analysis":
     calculate_average_time(df)
 elif selected_tab == "Edit Orders":
     show_edit_orders(df)
-
 
 
