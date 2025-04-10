@@ -1,4 +1,5 @@
 import streamlit as st
+st.set_page_config(page_title="Production Manager App", layout="wide")
 from modules.user_management import authenticate_user
 from modules.reports import show_reports
 from modules.charts import show_charts
@@ -9,7 +10,7 @@ from modules.analysis import calculate_average_time
 from modules.edit_orders import show_edit_orders
 
 # Set page config
-st.set_page_config(page_title="Production Manager App", layout="wide")
+
 
 # User authentication
 if 'authenticated' not in st.session_state:
@@ -70,5 +71,3 @@ elif selected_tab == "Analysis":
     calculate_average_time(df)
 elif selected_tab == "Edit Orders":
     show_edit_orders(df)
-
-
