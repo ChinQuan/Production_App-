@@ -1,59 +1,39 @@
+
 import streamlit as st
 import pandas as pd
-import plotly.graph_objs as go
+import plotly.express as px
 
 def show_charts(df):
-    st.title("📈 Charts")
+    st.title("📈 Charts Overview")
 
     if df.empty:
-        st.warning("No orders to display.")
+        st.warning("No production data available.")
         return
 
-    st.subheader("🧪 Raw Data Preview")
-    st.write(df.head())
+    # Konwersja daty
+    df["date"] = pd.to_datetime(df["date"])
+    df["weekday"] = df["date"].dt.day_name()
 
-    # Filtrowanie po firmie
-    if "company" in df.columns:
-        selected_company = st.selectbox("Filter by Company", ["All"] + sorted(df["company"].dropna().unique().tolist()))
-        if selected_company != "All":
-            df = df[df["company"] == selected_company]
+    # Filtrowanie tylko na dni robocze (pon-pt)
+    weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    df = df[df["weekday"].isin(weekdays)]
 
-    # Konwersja kolumn do liczbowych
-    df["seal_count"] = pd.to_numeric(df.get("seal_count"), errors="coerce")
-    df["production_time"] = pd.to_numeric(df.get("production_time"), errors="coerce")
+    # Wykres liniowy: dzienna produkcja
+    daily_prod = df.groupby("date")["seal_count"].sum().reset_index()
+    fig1 = px.line(daily_prod, x="date", y="seal_count", title="📅 Daily Seal Production (Weekdays Only)",
+                   markers=True, labels={"seal_count": "Seal Count", "date": "Date"})
+    st.plotly_chart(fig1, use_container_width=True)
 
-    # Usuwamy puste wartości seal_count
-    df = df.dropna(subset=["seal_count", "id"])
+    # Produkcja wg firmy i seal_type
+    if "company" in df.columns and "seal_type" in df.columns:
+        seal_by_company_type = df.groupby(["company", "seal_type"])["seal_count"].sum().reset_index()
+        fig2 = px.bar(seal_by_company_type, x="company", y="seal_count", color="seal_type",
+                      title="🏭 Seal Production by Company and Type", barmode="group")
+        st.plotly_chart(fig2, use_container_width=True)
 
-    # Pokaż dane które mają być wykresowane
-    st.subheader("📉 Data for Chart")
-    st.write(df[["id", "seal_count"]])
-
-    total_orders = len(df)
-    total_seals = df["seal_count"].sum()
-    avg_time = df["production_time"].mean()
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("📦 Total Orders", total_orders)
-    col2.metric("🧷 Total Seals", total_seals)
-    col3.metric("⏱️ Avg. Time", f"{avg_time:.1f} min" if pd.notnull(avg_time) else "N/A")
-
-    # Wykres
-    if not df.empty and "seal_count" in df.columns and "id" in df.columns:
-        try:
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=df["id"],
-                y=df["seal_count"],
-                mode='lines+markers',
-                name='Seals'
-            ))
-            fig.update_layout(title="Seals per Order", xaxis_title="Order ID", yaxis_title="Seals")
-            st.plotly_chart(fig, use_container_width=True)
-        except Exception as e:
-            st.error(f"⚠️ Error creating chart: {e}")
-    else:
-        st.info("Nothing to chart — check 'seal_count' and 'id' columns.")
-
-    st.subheader("📋 Filtered Production Orders")
-    st.dataframe(df)
+    # Produkcja wg operatora
+    if "operator" in df.columns:
+        seals_by_operator = df.groupby("operator")["seal_count"].sum().reset_index()
+        fig3 = px.bar(seals_by_operator, x="operator", y="seal_count",
+                      title="👷 Total Seal Production by Operator")
+        st.plotly_chart(fig3, use_container_width=True)
