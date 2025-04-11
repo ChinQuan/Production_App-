@@ -9,6 +9,7 @@ from modules.calculator import show_calculator
 from modules.database import get_orders_df
 from modules.edit_orders import show_edit_orders
 from modules.dashboard import show_dashboard
+from modules.user_panel import show_user_panel
 from modules.order_panel import show_order_panel
 from modules.production_analysis import calculate_average_time
 
@@ -29,6 +30,7 @@ def main():
     role = st.session_state.get("role", "User")
     st.sidebar.title("Navigation")
     menu = [
+        "👥 Users",
         "📥 Order Panel",
         "📈 Charts",
         "📊 Dashboard",
@@ -44,6 +46,10 @@ def main():
     elif selected == "📈 Charts":
         df = get_orders_df()
         show_charts(df)
+
+    elif selected == "👥 Users":
+        # Only admins can access user panel
+        show_user_panel()
 
     elif selected == "📊 Dashboard":
         df = get_orders_df()
