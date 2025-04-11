@@ -2,7 +2,8 @@
 import streamlit as st
 import pandas as pd
 import bcrypt
-from modules.database import get_connection
+from modules.database import connect as get_connection
+
 
 def show_user_panel():
     st.title("👥 User Management")
