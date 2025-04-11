@@ -55,7 +55,9 @@ def main():
         show_form()
 
     elif selected == "Calculator":
-        show_calculator()
+        df = get_orders_df()
+        show_calculator(df)
+
 
     elif selected == "Analysis":
         df = get_orders_df()
