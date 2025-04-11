@@ -1,7 +1,7 @@
 import streamlit as st
 st.set_page_config(page_title="Production Manager App", layout="wide")
 
-from modules.user_management import authenticate_user
+from modules.user_management import login
 from modules.reports import show_reports
 from modules.charts import show_charts
 from modules.form import show_form
@@ -18,7 +18,7 @@ def main():
         st.session_state.authenticated = False
 
     if not st.session_state.authenticated:
-        username, role = authenticate_user()
+        username, role = login()
         if username:
             st.session_state.authenticated = True
             st.session_state.username = username
