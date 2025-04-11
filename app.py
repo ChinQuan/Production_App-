@@ -8,9 +8,9 @@ from modules.charts import show_charts
 from modules.form import show_form
 from modules.calculator import show_calculator
 from modules.database import get_orders_df
-from modules.production_analysis import calculate_average_time
 from modules.edit_orders import show_edit_orders
 from modules.order_panel import show_order_panel
+from modules.production_analysis import calculate_average_time
 
 def main():
     if 'authenticated' not in st.session_state:
@@ -55,9 +55,10 @@ def main():
         show_form()
 
     elif selected == "Calculator":
-        show_calculator(df)
+        show_calculator()
 
     elif selected == "Analysis":
+        df = get_orders_df()
         calculate_average_time(df)
 
     elif selected == "Edit Orders":
