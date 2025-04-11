@@ -18,7 +18,7 @@ def main():
         st.session_state.authenticated = False
 
     if not st.session_state.authenticated:
-        username, role = login()
+        login()
         if username:
             st.session_state.authenticated = True
             st.session_state.username = username
@@ -34,6 +34,8 @@ def main():
         "📥 Order Panel",
         "📈 Charts",
         "📊 Dashboard",
+        "Reports",
+        "Add Order",
         "Calculator",
         "Analysis",
         "Edit Orders"
@@ -74,3 +76,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
