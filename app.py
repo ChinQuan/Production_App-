@@ -32,8 +32,6 @@ def main():
         "📥 Order Panel",
         "📈 Charts",
         "📊 Dashboard",
-        "Reports",
-        "Add Order",
         "Calculator",
         "Analysis",
         "Edit Orders"
@@ -57,10 +55,10 @@ def main():
         show_form()
 
     elif selected == "Calculator":
-        show_calculator()
+        show_calculator(df)
 
     elif selected == "Analysis":
-        calculate_average_time()
+        calculate_average_time(df)
 
     elif selected == "Edit Orders":
         df = get_orders_df()
