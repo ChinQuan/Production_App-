@@ -19,13 +19,7 @@ def main():
 
     if not st.session_state.authenticated:
         login()
-        if username:
-            st.session_state.authenticated = True
-            st.session_state.username = username
-            st.session_state.role = role
-            st.rerun()
-        else:
-            st.stop()
+        return
 
     role = st.session_state.get("role", "User")
     st.sidebar.title("Navigation")
@@ -76,4 +70,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
