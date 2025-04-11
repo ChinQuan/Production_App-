@@ -1,4 +1,3 @@
-
 import streamlit as st
 st.set_page_config(page_title="Production Manager App", layout="wide")
 
@@ -9,6 +8,7 @@ from modules.form import show_form
 from modules.calculator import show_calculator
 from modules.database import get_orders_df
 from modules.edit_orders import show_edit_orders
+from modules.dashboard import show_dashboard
 from modules.order_panel import show_order_panel
 from modules.production_analysis import calculate_average_time
 
@@ -46,7 +46,8 @@ def main():
         show_charts(df)
 
     elif selected == "📊 Dashboard":
-        st.write("🚧 Dashboard placeholder")
+        df = get_orders_df()
+        show_dashboard(df)
 
     elif selected == "Reports":
         show_reports()
@@ -55,9 +56,7 @@ def main():
         show_form()
 
     elif selected == "Calculator":
-        df = get_orders_df()
-        show_calculator(df)
-
+        show_calculator()
 
     elif selected == "Analysis":
         df = get_orders_df()
