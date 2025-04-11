@@ -1,9 +1,7 @@
-
 import streamlit as st
 import pandas as pd
+import psycopg2
 import bcrypt
-from modules.database import connect as get_connection
-
 
 def show_user_panel():
     st.title("👥 User Management")
@@ -12,10 +10,12 @@ def show_user_panel():
         st.error("❌ Access denied. This section is only for administrators.")
         return
 
-    conn = get_connection()
+    # 🔐 Connection copied from database.py
+    config = st.secrets["postgres"]
+    conn = psycopg2.connect(**config)
     cursor = conn.cursor()
 
-    # ADD USER
+    # ➕ ADD USER
     st.subheader("➕ Add New User")
     with st.form("add_user_form"):
         new_username = st.text_input("Username")
@@ -35,13 +35,17 @@ def show_user_panel():
 
     st.divider()
 
-    # VIEW USERS
+    # 📋 VIEW USERS
     st.subheader("📋 Current Users")
-    users_df = pd.read_sql("SELECT id, username, role FROM users ORDER BY id", conn)
-    st.dataframe(users_df, use_container_width=True)
+    try:
+        users_df = pd.read_sql("SELECT id, username, role FROM users ORDER BY id", conn)
+        st.dataframe(users_df, use_container_width=True)
+    except Exception as e:
+        st.error(f"❌ Failed to fetch users: {e}")
+        return
 
-    # RESET PASSWORD
-    st.subheader("🔁 Reset User Password")
+    # 🔁 RESET PASSWORD
+    st.subheader("🔁 Reset Password")
     with st.form("reset_pw_form"):
         user_to_reset = st.selectbox("Select user", users_df["username"].tolist())
         new_pw = st.text_input("New Password", type="password")
@@ -56,7 +60,7 @@ def show_user_panel():
             else:
                 st.warning("Please enter a new password.")
 
-    # DELETE USER
+    # ❌ DELETE USER
     st.subheader("❌ Delete User")
     with st.form("delete_user_form"):
         user_to_delete = st.selectbox("Select user to delete", users_df["username"].tolist())
