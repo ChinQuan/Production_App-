@@ -6,7 +6,7 @@ from modules.database import insert_order, get_orders_df
 def show_order_panel():
     st.title("📥 Order Panel")
 
-    col1, col2 = st.columns([1.2, 2], gap="large")
+    col1, col2 = st.columns([1.5, 2])
 
     with col1:
         st.subheader("➕ Add New Completed Order")
@@ -34,9 +34,10 @@ def show_order_panel():
                     insert_order(new_order)
                     st.success("✅ Order added successfully!")
                 except Exception as e:
-                    st.error(f"❌ Failed to add order:\n{e}")
+                    st.error(f"❌ Failed to add order:\\n{e}")
 
     with col2:
         st.subheader("📋 Current Production Orders")
         df = get_orders_df()
         st.dataframe(df)
+
