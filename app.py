@@ -7,7 +7,6 @@ from modules.user_management import show_user_panel
 from modules.database import get_orders_df, get_current_user_role
 from modules.auth import check_authentication
 from modules.edit_orders import show_edit_orders
-from modules.activity_log import show_activity_log
 
 
 def main():
