@@ -2,7 +2,7 @@ import streamlit as st
 from modules.order_panel import show_order_panel
 from modules.charts import show_charts
 from modules.dashboard import show_dashboard
-from modules.analysis import show_analysis, calculate_average_time
+from modules.analysis import calculate_average_time
 from modules.user_management import show_user_management
 from modules.database import get_orders_df, get_current_user_role
 from modules.auth import check_authentication
