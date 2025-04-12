@@ -11,13 +11,18 @@ def show_order_panel():
     with col1:
         st.subheader("➕ Add New Completed Order")
         with st.form("order_panel_form"):
-            date = st.date_input("📅 Production Date", value=datetime.today())
-            company = st.text_input("🏢 Company Name")
-            operator = st.text_input("👷 Operator")
-            seal_type = st.selectbox("🧷 Seal Type", ["Standard Hard", "Standard Soft", "Custom"])
-            profile = st.text_input("📄 Enter Seal Profile (optional)")
-            seal_count = st.number_input("🔢 Number of Seals", min_value=0, step=1)
-            production_time = st.number_input("⏱️ Production Time (Minutes)", min_value=0.0, step=1.0)
+            form_col1, form_col2 = st.columns(2)
+
+            with form_col1:
+                date = st.date_input("📅 Production Date", value=datetime.today())
+                company = st.text_input("🏢 Company Name")
+                seal_type = st.selectbox("🧷 Seal Type", ["Standard Hard", "Standard Soft", "Custom"])
+                seal_count = st.number_input("🔢 Number of Seals", min_value=0, step=1)
+
+            with form_col2:
+                operator = st.text_input("👷 Operator")
+                profile = st.text_input("📄 Enter Seal Profile (optional)")
+                production_time = st.number_input("⏱️ Production Time (Minutes)", min_value=0.0, step=1.0)
 
             submitted = st.form_submit_button("✅ Submit Order")
             if submitted:
@@ -40,4 +45,3 @@ def show_order_panel():
         st.subheader("📋 Current Production Orders")
         df = get_orders_df()
         st.dataframe(df)
-
