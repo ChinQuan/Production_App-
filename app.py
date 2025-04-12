@@ -27,7 +27,7 @@ def main():
     elif page == "Dashboard":
         df = get_orders_df()
         show_dashboard(df)
-    elif page == "User Management" and role == "admin":
+    elif page == "User Management" and role.lower() == "admin":
         show_user_panel()
     else:
         st.sidebar.warning("You don't have access to this section.")
