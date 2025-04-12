@@ -1,4 +1,3 @@
-
 import streamlit as st
 from modules.login import login
 from modules.order_panel import show_order_panel
@@ -6,6 +5,7 @@ from modules.charts import show_charts
 from modules.dashboard import show_dashboard
 from modules.user_management import show_user_panel
 from modules.database import get_orders_df
+from modules.analysis import calculate_average_time
 
 def main():
     #st.sidebar.write("🧠 Debug:", st.session_state)
@@ -17,7 +17,7 @@ def main():
     role = st.session_state.get("role", "guest")
 
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", ["Order Panel", "Charts", "Dashboard", "User Management"])
+    page = st.sidebar.radio("Go to", ["Order Panel", "Charts", "Dashboard", "User Management", "Analysis"])
 
     if page == "Order Panel":
         show_order_panel()
@@ -29,6 +29,9 @@ def main():
         show_dashboard(df)
     elif page == "User Management" and role == "admin":
         show_user_panel()
+    elif page == "Analysis":
+        df = get_orders_df()
+        calculate_average_time(df)
     else:
         st.sidebar.warning("You don't have access to this section.")
 
