@@ -124,4 +124,9 @@ def get_user_by_username(username):
         st.error(f"❌ Failed to fetch user:\n\n{e}")
         return None
 
+# 🔌 Reusable connection for login and user operations
+def get_connection():
+    config = st.secrets["postgres"]
+    return psycopg2.connect(**config)
+
 
