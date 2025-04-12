@@ -42,11 +42,23 @@ def show_order_panel():
         # Wczytanie danych
         df = get_orders_df()
 
-        # Używamy CSS, by zwiększyć szerokość kolumn w tabeli
+        # Dodajemy niestandardowy CSS, aby zwiększyć szerokość kolumn w tabeli
         st.markdown("""
             <style>
                 .stDataFrame {
                     overflow-x: auto;
                 }
                 .stDataFrame table {
-                    width: 100
+                    width: 100%;
+                    table-layout: fixed;
+                }
+                .stDataFrame th, .stDataFrame td {
+                    padding: 12px;
+                    text-align: center;
+                    min-width: 150px; /* Możesz dostosować tę wartość, np. 200px */
+                }
+            </style>
+        """, unsafe_allow_html=True)
+
+        # Wyświetlanie tabeli
+        st.dataframe(df, use_container_width=True)
