@@ -32,5 +32,36 @@ def show_order_panel():
                 }
                 try:
                     insert_order(new_order)
-                    st.success
+                    st.success("✅ Order added successfully!")
+                except Exception as e:
+                    st.error(f"❌ Failed to add order:\n{e}")
+                finally:
+                    # Możesz dodać kod czyszczący, jeśli jest to konieczne po wykonaniu try-except
+                    pass
 
+    with col2:
+        st.subheader("📋 Current Production Orders")
+        
+        # Wczytanie danych
+        df = get_orders_df()
+
+        # Dodanie niestandardowego CSS w celu ustawienia szerokości kolumn
+        st.markdown("""
+            <style>
+                .stDataFrame {
+                    overflow-x: auto;
+                }
+                .stDataFrame table {
+                    width: 100%;
+                    table-layout: fixed;
+                }
+                .stDataFrame th, .stDataFrame td {
+                    padding: 12px;
+                    text-align: center;
+                    min-width: 150px; /* Zwiększ szerokość kolumn */
+                }
+            </style>
+        """, unsafe_allow_html=True)
+
+        # Wyświetlanie tabeli
+        st.dataframe(df, use_container_width=True)
