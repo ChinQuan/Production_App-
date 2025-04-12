@@ -16,7 +16,7 @@ def show_user_panel():
     st.subheader("👥 Existing Users")
     for user in users:
         with st.expander(f"{user[1]} ({user[2]})"):
-            new_role = st.selectbox(f"Role for {user[1]}", ["admin", "user"], index=["admin", "user"].index(user[2]), key=f"role_{user[0]}")
+            new_role = st.selectbox(f"Role for {user[1]}", ["admin", "user"], index=["admin", "user"].index(user[2].lower()))
             new_password = st.text_input(f"New password for {user[1]} (leave empty to keep current)", type="password", key=f"pass_{user[0]}")
             col1, col2 = st.columns(2)
             with col1:
