@@ -27,9 +27,9 @@ def main():
         if page == "Order Panel":
             show_order_panel()
         elif page == "Charts":
-            show_charts()
+            show_charts(df)
         elif page == "Dashboard":
-            show_dashboard()
+            show_dashboard(df)
         elif page == "User Management":
             if role == "admin":
                 show_user_panel()
