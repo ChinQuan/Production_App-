@@ -39,17 +39,14 @@ def show_order_panel():
     with col2:
         st.subheader("📋 Current Production Orders")
         
-        # Wczytaj dane
+        # Wczytanie danych
         df = get_orders_df()
 
-        # Dodajemy niestandardowy CSS, aby zwiększyć szerokość kolumn
+        # Używamy CSS, by zwiększyć szerokość kolumn w tabeli
         st.markdown("""
             <style>
-                .stDataFrame tbody tr th, .stDataFrame tbody tr td {
-                    min-width: 200px; /* Możesz dostosować wartość */
+                .stDataFrame {
+                    overflow-x: auto;
                 }
-            </style>
-        """, unsafe_allow_html=True)
-
-        # Wyświetlanie tabeli z dostosowaną szerokością kolumn
-        st.dataframe(df)
+                .stDataFrame table {
+                    width: 100
