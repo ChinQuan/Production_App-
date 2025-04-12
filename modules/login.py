@@ -16,10 +16,14 @@ def login():
         conn.close()
 
         if result and bcrypt.checkpw(password.encode(), result[0].encode()):
-            st.sidebar.success(f"✅ Logged in as {username}")
-            st.sidebar.write(f"🛡 Role: {result[1]}")
-            return username, result[1]
+            st.session_state["username"] = username
+            st.session_state["role"] = result[1]
+            st.rerun()
         else:
             st.sidebar.error("❌ Invalid username or password")
 
-    return None, None
+    # Optional info for debugging or display
+    if "username" in st.session_state:
+        st.sidebar.success(f"✅ Logged in as {st.session_state['username']}")
+        st.sidebar.write(f"🛡 Role: {st.session_state.get('role')}")
+
