@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -41,3 +40,4 @@ def show_order_panel():
         st.subheader("📋 Current Production Orders")
         df = get_orders_df()
         st.dataframe(df)
+
