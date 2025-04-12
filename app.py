@@ -1,8 +1,4 @@
 import streamlit as st
-import sys
-import os
-sys.path.append(os.path.dirname(__file__))
-
 from modules.login import login  # Import funkcji login z modułu login
 from modules.order_panel import show_order_panel
 from modules.charts import show_charts
