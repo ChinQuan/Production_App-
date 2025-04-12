@@ -1,7 +1,6 @@
-
 import streamlit as st
 import bcrypt
-from modules.database import get_connection
+from modules.database import get_user_by_username
 
 def login():
     st.sidebar.title("🔐 Login")
@@ -10,15 +9,11 @@ def login():
     login_btn = st.sidebar.button("Login")
 
     if login_btn:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT password, role FROM users WHERE username = %s", (username,))
-        result = cursor.fetchone()
-        conn.close()
+        user = get_user_by_username(username)
 
-        if result and bcrypt.checkpw(password.encode(), result[0].encode()):
+        if user and bcrypt.checkpw(password.encode(), user["password"].encode()):
             st.session_state["username"] = username
-            st.session_state["role"] = result[1]
+            st.session_state["role"] = user["role"]
             st.rerun()
         else:
             st.sidebar.error("❌ Invalid username or password")
