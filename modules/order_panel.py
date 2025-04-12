@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -39,5 +38,18 @@ def show_order_panel():
 
     with col2:
         st.subheader("📋 Current Production Orders")
+        
+        # Wczytaj dane
         df = get_orders_df()
+
+        # Dodajemy niestandardowy CSS, aby zwiększyć szerokość kolumn
+        st.markdown("""
+            <style>
+                .stDataFrame tbody tr th, .stDataFrame tbody tr td {
+                    min-width: 200px; /* Możesz dostosować wartość */
+                }
+            </style>
+        """, unsafe_allow_html=True)
+
+        # Wyświetlanie tabeli z dostosowaną szerokością kolumn
         st.dataframe(df)
