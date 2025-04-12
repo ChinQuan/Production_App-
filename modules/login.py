@@ -1,3 +1,4 @@
+
 import streamlit as st
 import bcrypt
 from modules.database import get_connection
@@ -17,7 +18,7 @@ def login():
 
         if result and bcrypt.checkpw(password.encode(), result[0].encode()):
             st.session_state["username"] = username
-            st.session_state["role"] = result[1].lower()  # Store role in lowercase
+            st.session_state["role"] = result[1]
             st.rerun()
         else:
             st.sidebar.error("❌ Invalid username or password")
