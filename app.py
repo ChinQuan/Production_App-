@@ -1,30 +1,36 @@
-import streamlit as st
 
+import streamlit as st
+from modules.login import login
 from modules.order_panel import show_order_panel
 from modules.charts import show_charts
 from modules.dashboard import show_dashboard
-from modules.analysis import calculate_average_time
 from modules.user_management import show_user_panel
 from modules.database import get_orders_df
-from modules.edit_orders import show_edit_orders
 
 def main():
-    st.set_page_config(layout="wide")
-    st.title("Order Management")
+    st.sidebar.write("🧠 Debug:", st.session_state)
 
-    menu = ["Dashboard", "Order Panel", "Charts", "Edit Orders", "Users"]
-    choice = st.sidebar.selectbox("Select an option", menu)
+    if not st.session_state.get("username"):
+        login()
+        return
 
-    if choice == "Dashboard":
-        show_dashboard()
-    elif choice == "Order Panel":
+    role = st.session_state.get("role", "guest")
+
+    st.sidebar.title("Navigation")
+    page = st.sidebar.radio("Go to", ["Order Panel", "Charts", "Dashboard", "User Management"])
+
+    if page == "Order Panel":
         show_order_panel()
-    elif choice == "Charts":
-        show_charts()
-    elif choice == "Edit Orders":
-        show_edit_orders()
-    elif choice == "Users":
+    elif page == "Charts":
+        df = get_orders_df()
+        show_charts(df)
+    elif page == "Dashboard":
+        df = get_orders_df()
+        show_dashboard(df)
+    elif page == "User Management" and role == "admin":
         show_user_panel()
+    else:
+        st.sidebar.warning("You don't have access to this section.")
 
 if __name__ == "__main__":
     main()
