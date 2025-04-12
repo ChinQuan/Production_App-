@@ -8,7 +8,7 @@ from modules.user_management import show_user_panel
 from modules.database import get_orders_df
 
 def main():
-    st.sidebar.write("🧠 Debug:", st.session_state)
+    #st.sidebar.write("🧠 Debug:", st.session_state)
 
     if not st.session_state.get("username"):
         login()
