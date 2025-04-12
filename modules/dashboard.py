@@ -67,3 +67,11 @@ def show_dashboard(df):
         st.error("Missing values in: " + ", ".join(missing))
     else:
         st.success("✅ No missing critical fields!")
+
+
+    # 📈 Avg. Daily Production (Mon–Fri)
+    working_days_df = df[df["date"].dt.weekday < 5]
+    daily_totals = working_days_df.groupby("date")["seal_count"].sum()
+    avg_daily_production = daily_totals.mean()
+    st.metric("📊 Avg. Daily Seal Production (Weekdays)", f"{avg_daily_production:.1f} seals")
+
