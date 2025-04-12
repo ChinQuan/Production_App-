@@ -1,59 +1,47 @@
 import streamlit as st
-import pandas as pd
-from modules.database import get_orders_df, update_order, delete_order
-from datetime import datetime
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
 
-def show_edit_orders(df):
-    st.header("✏️ Edit Orders")
+from modules.login import login  # Import funkcji login z modułu login
+from modules.order_panel import show_order_panel
+from modules.charts import show_charts
+from modules.dashboard import show_dashboard
+from modules.production_analysis import calculate_average_time
+from modules.edit_orders import show_edit_orders
+from modules.user_management import show_user_panel  # Import funkcji do zarządzania użytkownikami
 
-    if df.empty:
-        st.warning("No orders available to edit.")
+def main():
+    # Sprawdzanie, czy użytkownik jest zalogowany
+    if not st.session_state.get("username"):
+        login()  # Jeśli użytkownik nie jest zalogowany, wywołujemy funkcję login()
         return
 
-    st.subheader("📋 All Orders")
-    st.dataframe(df.drop(columns=["id"]), use_container_width=True)
+    # Gdy użytkownik jest zalogowany, wyświetlamy odpowiedni panel
+    role = st.session_state.get("role", "guest")
+    
+    # Dodawanie różnych zakładek w zależności od roli użytkownika
+    st.sidebar.title("Navigation")
+    page = st.sidebar.radio("Go to", ["Order Panel", "Charts", "Dashboard", "User Management"])
 
-    index_options = df.index.tolist()
-    selected_index = st.selectbox("Select Row Index to Edit", index_options)
+    if page == "Order Panel":
+        show_order_panel()
+    elif page == "Charts":
+        show_charts()
+    elif page == "Dashboard":
+        show_dashboard()
+    
+    elif page == "Analysis":
+        df = get_orders_df()
+        calculate_average_time(df)
 
-    try:
-        selected_order = df.loc[selected_index]
-        order_id = int(selected_order["id"])  # używamy ID do aktualizacji/usuwania
-    except KeyError:
-        st.error("Selected index not found.")
-        return
+    elif page == "Edit Orders":
+        df = get_orders_df()
+        show_edit_orders(df)
+elif page == "User Management" and role == "admin":
+        show_user_panel()  # Wyświetlenie panelu do zarządzania użytkownikami tylko dla admina
+    else:
+        st.sidebar.warning("You don't have access to this section.")
 
-    with st.form("edit_order_form"):
-        date = st.date_input(
-            "Date",
-            value=pd.to_datetime(selected_order.get("date", datetime.today())).date()
-        )
-        company = st.text_input("Company", value=selected_order.get("company", ""))
-        operator = st.text_input("Operator", value=selected_order.get("operator", ""))
-        seal_type = st.text_input("Seal Type", value=selected_order.get("seal_type", ""))
-        seal_count = st.number_input("Seal Count", value=selected_order.get("seal_count", 0), step=1)
-        production_time = st.text_input("Production Time", value=selected_order.get("production_time", ""))
-
-        submitted = st.form_submit_button("Save Changes")
-        if submitted:
-            updated_order = {
-                "date": date,
-                "company": company,
-                "operator": operator,
-                "seal_type": seal_type,
-                "seal_count": seal_count,
-                "production_time": production_time,
-            }
-            try:
-                update_order(order_id, updated_order)
-                st.success("Order updated successfully!")
-            except Exception as e:
-                st.error(f"❌ Failed to update order:\n{e}")
-
-    st.markdown("---")
-    if st.button("🗑️ Delete This Order"):
-        try:
-            delete_order(order_id)
-            st.success("Order deleted successfully!")
-        except Exception as e:
-            st.error(f"❌ Failed to delete order:\n{e}")
+if __name__ == "__main__":
+    main()
