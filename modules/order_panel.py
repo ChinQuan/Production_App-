@@ -39,9 +39,10 @@ def show_order_panel():
                     insert_order(new_order)
                     st.success("✅ Order added successfully!")
                 except Exception as e:
-                    st.error(f"❌ Failed to add order:\n{e}")
+                    st.error(f"❌ Failed to add order:\\n{e}")
 
     with col2:
         st.subheader("📋 Current Production Orders")
         df = get_orders_df()
         st.dataframe(df)
+
