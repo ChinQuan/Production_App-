@@ -4,6 +4,7 @@ import datetime
 import plotly.express as px
 import psycopg2
 
+# Seal production defaults
 SEAL_PRODUCTION_TIMES = {
     'Standard Hard': 6,
     'Standard Soft': 5,
@@ -12,8 +13,12 @@ SEAL_PRODUCTION_TIMES = {
     'Custom Hard': 11,
     'V-Rings': 4
 }
-
 VALID_SEAL_TYPES = list(SEAL_PRODUCTION_TIMES.keys())
+
+def format_duration(duration_hours):
+    if duration_hours < 1:
+        return f"{int(duration_hours * 60)} min"
+    return f"{duration_hours:.2f} h"
 
 def load_average_times_from_db():
     avg_times = {}
@@ -67,12 +72,9 @@ def get_company_list_from_db():
 def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
     total_minutes = 0
     days_processed = 0
-
     while work_minutes > 0:
         if days_processed > max_days:
-            st.error("⚠️ Maximum day limit (365) exceeded. Check your input.")
             return None
-
         weekday = start_datetime.weekday()
         if weekday < 4:
             if seal_type in ['Standard Hard', 'Standard Soft'] and weekday in [0, 1, 2]:
@@ -80,12 +82,14 @@ def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
             else:
                 work_day_minutes = 510
         elif weekday == 4:
-            work_day_minutes = 450 if seal_type in ['Standard Hard', 'Standard Soft'] else 0
+            if seal_type in ['Standard Hard', 'Standard Soft']:
+                work_day_minutes = 450
+            else:
+                work_day_minutes = 0
         else:
             start_datetime += datetime.timedelta(days=1)
             days_processed += 1
             continue
-
         if work_minutes <= work_day_minutes:
             start_datetime += datetime.timedelta(minutes=work_minutes)
             break
@@ -93,7 +97,6 @@ def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
             work_minutes -= work_day_minutes
             start_datetime += datetime.timedelta(days=1)
             days_processed += 1
-
     return start_datetime
 
 def show_calculator():
@@ -101,15 +104,19 @@ def show_calculator():
     st.markdown("Add multiple production orders:")
 
     avg_times = load_average_times_from_db()
-    all_companies = get_company_list_from_db()
+    company_list = get_company_list_from_db()
 
     if "orders" not in st.session_state:
         st.session_state.orders = []
 
     with st.form("add_order_form"):
-        input_text = st.text_input("Type to search company")
-        filtered_companies = [c for c in all_companies if input_text.lower() in c.lower()] if input_text else all_companies
-        company = st.selectbox("Company name", filtered_companies) if filtered_companies else st.text_input("Company (manual)")
+        input_text = st.text_input("Type company name (at least 2 letters)")
+        filtered_companies = [c for c in company_list if input_text.lower() in c.lower()] if input_text else []
+        if filtered_companies:
+            company = st.selectbox("Select company", filtered_companies)
+        else:
+            company = st.text_input("Enter new company name")
+
         seal_type = st.selectbox("Seal type", VALID_SEAL_TYPES)
         quantity = st.number_input("Quantity", min_value=1, step=1)
         start_date = st.date_input("Start date", datetime.date.today())
@@ -148,13 +155,14 @@ def show_calculator():
                 unit_time = avg_times.get(key, SEAL_PRODUCTION_TIMES.get(order["seal_type"], 5))
                 total_minutes = int(order["quantity"] * unit_time)
                 end_date = add_work_minutes(order["start_datetime"], total_minutes, order["seal_type"])
+                duration_hr = total_minutes / 60
                 results.append({
                     "Company": order["company"],
                     "Seal Type": order["seal_type"],
                     "Quantity": order["quantity"],
                     "Start": order["start_datetime"],
                     "Estimated End": end_date,
-                    "Duration (h)": total_minutes / 60
+                    "Duration": format_duration(duration_hr)
                 })
 
             df_results = pd.DataFrame(results)
@@ -172,7 +180,3 @@ def show_calculator():
             st.subheader("📈 Summary Statistics")
             st.markdown(f"**Total Orders:** {len(df_results)}")
             st.markdown(f"**Total Quantity:** {df_results['Quantity'].sum()} units")
-            st.markdown(f"**Total Production Time:** {df_results['Duration (h)'].sum():.2f} hours")
-            st.markdown(f"**Average per Order:** {df_results['Duration (h)'].mean():.2f} hours")
-
-show_calculator()
