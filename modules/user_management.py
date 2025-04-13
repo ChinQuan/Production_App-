@@ -5,12 +5,11 @@ def show_user_panel():
     st.title("🧑‍💼 User Management Panel")
 
     users = get_all_users()
-    #st.write("🔍 DEBUG: Loaded users:", users)
 
     st.subheader("👥 Existing Users")
     for user in users:
         with st.expander(f"{user[1]} ({user[2]})"):
-            role_options = ["admin", "user"]
+            role_options = ["admin", "operator"]
             current_role = user[2].lower()
             index = role_options.index(current_role) if current_role in role_options else 0
             new_role = st.selectbox(f"Role for {user[1]}", role_options, index=index, key=f"role_{user[0]}")
@@ -33,7 +32,7 @@ def show_user_panel():
     st.subheader("➕ Add New User")
     new_username = st.text_input("New Username")
     new_user_password = st.text_input("New Password", type="password")
-    new_user_role = st.selectbox("Role", ["user", "admin"])
+    new_user_role = st.selectbox("Role", ["operator", "admin"])
     if st.button("Create User"):
         if not new_username or not new_user_password:
             st.error("❗ Please enter both username and password.")
