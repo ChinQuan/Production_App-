@@ -23,7 +23,7 @@ def main():
     role = st.session_state.get("role", "guest")
 
     pages = ["Order Panel", "Charts", "Dashboard", "Edit Orders", "Analysis", "Calculator"]
-    if role == "admin":
+    if role.lower() == "admin":
         pages.insert(4, "User Management")  # Dodajemy tylko dla admina
 
     page = st.sidebar.radio("Go to", pages)
