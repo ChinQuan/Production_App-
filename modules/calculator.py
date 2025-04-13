@@ -4,7 +4,7 @@ import datetime
 import plotly.express as px
 import psycopg2
 
-# Seal production defaults
+# Updated list of valid seal types with production time per unit (minutes)
 SEAL_PRODUCTION_TIMES = {
     'Standard Hard': 6,
     'Standard Soft': 5,
@@ -13,14 +13,11 @@ SEAL_PRODUCTION_TIMES = {
     'Custom Hard': 11,
     'V-Rings': 4
 }
+
 VALID_SEAL_TYPES = list(SEAL_PRODUCTION_TIMES.keys())
 
-def format_duration(duration_hours):
-    if duration_hours < 1:
-        return f"{int(duration_hours * 60)} min"
-    return f"{duration_hours:.2f} h"
-
 def load_average_times_from_db():
+    """Fetch average production time per unit from PostgreSQL."""
     avg_times = {}
     try:
         dbname = st.secrets["postgres"].get("dbname", st.secrets["postgres"].get("database"))
@@ -50,6 +47,7 @@ def load_average_times_from_db():
     return avg_times
 
 def get_company_list_from_db():
+    """Fetch distinct company names from the orders table."""
     companies = []
     try:
         dbname = st.secrets["postgres"].get("dbname", st.secrets["postgres"].get("database"))
@@ -68,6 +66,11 @@ def get_company_list_from_db():
     except Exception as e:
         st.warning(f"⚠️ Could not fetch company list from DB: {e}")
     return companies
+
+def format_duration(duration_hours):
+    if duration_hours < 1:
+        return f"{int(duration_hours * 60)} min"
+    return f"{duration_hours:.2f} h"
 
 def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
     total_minutes = 0
@@ -111,7 +114,7 @@ def show_calculator():
 
     with st.form("add_order_form"):
         input_text = st.text_input("Type company name (at least 2 letters)")
-        filtered_companies = [c for c in company_list if input_text.lower() in c.lower()] if input_text else []
+        filtered_companies = [c for c in company_list if input_text.lower() in c.lower()] if input_text else company_list
         if filtered_companies:
             company = st.selectbox("Select company", filtered_companies)
         else:
