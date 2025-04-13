@@ -17,13 +17,13 @@ def main():
         login()
         return
 
-    role = st.session_state.get("role", "guest")
+    role = st.session_state.get("role", "").lower()  # bezpieczne pobranie roli
 
     st.sidebar.title("Navigation")
-    role = st.session_state.get("role", "guest")
+    role = st.session_state.get("role", "").lower()  # bezpieczne pobranie roli
 
     pages = ["Order Panel", "Charts", "Dashboard", "Edit Orders", "Analysis", "Calculator"]
-    if role.lower() == "admin":
+    if role == "admin":  # widoczność tylko dla admina
         pages.insert(4, "User Management")  # Dodajemy tylko dla admina
 
     page = st.sidebar.radio("Go to", pages)
