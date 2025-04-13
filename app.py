@@ -1,4 +1,12 @@
 import streamlit as st
+from modules.auth import login_form
+
+# Jeśli użytkownik nie jest zalogowany — pokaż formularz logowania
+if "username" not in st.session_state:
+    login_form()
+    st.stop()
+
+import streamlit as st
 from modules.login import login
 from modules.order_panel import show_order_panel
 from modules.charts import show_charts
