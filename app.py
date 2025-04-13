@@ -20,15 +20,13 @@ def main():
     role = st.session_state.get("role", "guest")
 
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", [
-        "Order Panel",
-        "Charts",
-        "Dashboard",
-        "Edit Orders",
-        "User Management",
-        "Analysis",
-        "Calculator"
-    ])
+    role = st.session_state.get("role", "guest")
+
+    pages = ["Order Panel", "Charts", "Dashboard", "Edit Orders", "Analysis", "Calculator"]
+    if role == "admin":
+        pages.insert(4, "User Management")  # Dodajemy tylko dla admina
+
+    page = st.sidebar.radio("Go to", pages)
 
     if page == "Order Panel":
         show_order_panel()
@@ -45,7 +43,7 @@ def main():
         df = get_orders_df()
         show_edit_orders(df)
 
-    elif page == "User Management":  # ⚠️ admin check temporarily disabled
+    elif page == "User Management" and role == "admin":
         show_user_panel()
 
     elif page == "Analysis":
