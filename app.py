@@ -1,3 +1,4 @@
+from modules.edit_orders import show_edit_orders
 import streamlit as st
 from modules.login import login
 from modules.order_panel import show_order_panel
@@ -18,7 +19,8 @@ def main():
     role = st.session_state.get("role", "guest")
 
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", ["Order Panel", "Charts", "Dashboard", "User Management", "Analysis", "Calculator"])
+    page = st.sidebar.radio("Go to", [
+        "Edit Orders","Order Panel", "Charts", "Dashboard", "User Management", "Analysis", "Calculator"])
 
     if page == "Order Panel":
         show_order_panel()
@@ -30,7 +32,11 @@ def main():
         show_dashboard(df)
     elif page == "User Management" and role == "admin":
         show_user_panel()
-    elif page == "Calculator":
+    
+elif page == "Edit Orders":
+    df = get_orders_df()
+    show_edit_orders(df)
+elif page == "Calculator":
         df = get_orders_df()
         show_calculator(df)
     elif page == "Analysis":
