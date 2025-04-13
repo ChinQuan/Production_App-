@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import plotly.express as px
+import psycopg2
 
 # Updated list of valid seal types with production time per unit (minutes)
 SEAL_PRODUCTION_TIMES = {
@@ -14,6 +15,35 @@ SEAL_PRODUCTION_TIMES = {
 }
 
 VALID_SEAL_TYPES = list(SEAL_PRODUCTION_TIMES.keys())
+
+def load_average_times_from_db():
+    """Fetch average production time per unit from PostgreSQL."""
+    avg_times = {}
+    try:
+        conn = psycopg2.connect(
+            host=st.secrets["postgres"]["host"],
+            port=st.secrets["postgres"]["port"],
+            dbname=st.secrets["postgres"]["dbname"],
+            user=st.secrets["postgres"]["user"],
+            password=st.secrets["postgres"]["password"]
+        )
+        cursor = conn.cursor()
+        query = """
+            SELECT company, seal_type,
+                   AVG(EXTRACT(EPOCH FROM (end_time - start_time))/60.0/quantity) AS avg_time_per_unit
+              FROM production_orders
+             WHERE quantity > 0 AND end_time IS NOT NULL AND start_time IS NOT NULL
+             GROUP BY company, seal_type;
+        """
+        cursor.execute(query)
+        for row in cursor.fetchall():
+            key = (row[0], row[1])
+            avg_times[key] = float(row[2])
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        st.warning(f"⚠️ Could not load dynamic production times from DB: {e}")
+    return avg_times
 
 def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
     total_minutes = 0
@@ -66,6 +96,8 @@ def show_calculator():
     st.title("🧮 Production Time Calculator")
     st.markdown("Add multiple production orders:")
 
+    avg_times = load_average_times_from_db()
+
     if "orders" not in st.session_state:
         st.session_state.orders = []
 
@@ -112,7 +144,8 @@ def show_calculator():
         if st.button("Calculate End Dates"):
             results = []
             for order in st.session_state.orders:
-                unit_time = SEAL_PRODUCTION_TIMES.get(order["seal_type"], 5)
+                key = (order["company"], order["seal_type"])
+                unit_time = avg_times.get(key, SEAL_PRODUCTION_TIMES.get(order["seal_type"], 5))
                 total_minutes = int(order["quantity"] * unit_time)
                 end_date = add_work_minutes(order["start_datetime"], total_minutes, order["seal_type"])
                 results.append({
