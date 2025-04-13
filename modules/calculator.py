@@ -59,22 +59,45 @@ def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
 def show_calculator():
     st.title("🧮 Production Time Calculator")
 
-    with st.form("production_calc"):
-        st.markdown("Enter production time data:")
+    st.markdown("Add multiple production orders:")
 
-        start_date = st.date_input("Start date", datetime.date.today())
-        start_time = st.time_input("Start time", datetime.time(8, 0))
-        seal_type = st.selectbox("Seal type", ['Standard Hard', 'Standard Soft', 'Express'])
-        work_minutes = st.number_input("Working time [minutes]", min_value=1, max_value=50000, value=480)
+    if "orders" not in st.session_state:
+        st.session_state.orders = []
 
-        submitted = st.form_submit_button("Calculate end date")
+    with st.form("add_order_form"):
+        company = st.text_input("Company name")
+        seal_type = st.selectbox("Seal type", ['Standard Hard', 'Standard Soft', 'Express'], key="seal_type")
+        quantity = st.number_input("Quantity", min_value=1, step=1, key="quantity")
+        start_date = st.date_input("Start date", datetime.date.today(), key="start_date")
+        start_time = st.time_input("Start time", datetime.time(8, 0), key="start_time")
+        submitted = st.form_submit_button("Add order")
 
     if submitted:
-        try:
-            start_datetime = datetime.datetime.combine(start_date, start_time)
-            result = add_work_minutes(start_datetime, int(work_minutes), seal_type)
+        start_datetime = datetime.datetime.combine(start_date, start_time)
+        st.session_state.orders.append({
+            "company": company,
+            "seal_type": seal_type,
+            "quantity": quantity,
+            "start_datetime": start_datetime
+        })
+        st.success("Order added!")
 
-            if result:
-                st.success(f"✅ Estimated end date: **{result.strftime('%Y-%m-%d %H:%M')}**")
-        except Exception as e:
-            st.error(f"An unexpected error occurred: {e}")
+    if st.session_state.orders:
+        st.subheader("📦 Orders")
+        df_orders = pd.DataFrame(st.session_state.orders)
+        st.dataframe(df_orders)
+
+        if st.button("Calculate End Dates"):
+            results = []
+            for order in st.session_state.orders:
+                total_minutes = order["quantity"] * 5  # example: 5 minutes per unit
+                end_date = add_work_minutes(order["start_datetime"], total_minutes, order["seal_type"])
+                results.append({
+                    "Company": order["company"],
+                    "Seal Type": order["seal_type"],
+                    "Quantity": order["quantity"],
+                    "Start": order["start_datetime"],
+                    "Estimated End": end_date
+                })
+            st.subheader("📅 Estimated Completion Dates")
+            st.dataframe(pd.DataFrame(results))
