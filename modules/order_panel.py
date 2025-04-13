@@ -56,16 +56,11 @@ def show_order_panel():
                     "notes": notes
                 }
 
-                st.subheader("🧾 Summary Before Saving")
-                summary_df = pd.DataFrame([new_order])
-                st.dataframe(summary_df)
-
-                if st.button("💾 Confirm & Save Order"):
-                    try:
-                        insert_order(new_order)
-                        st.success("✅ Order added successfully!")
-                    except Exception as e:
-                        st.error(f"❌ Failed to save order: {e}")
+                try:
+                    insert_order(new_order)
+                    st.success("✅ Order added successfully!")
+                except Exception as e:
+                    st.error(f"❌ Failed to save order: {e}")
 
     # ---------------------------
     # 📋 Recently Added Orders
