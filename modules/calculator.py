@@ -4,7 +4,6 @@ import datetime
 import plotly.express as px
 import psycopg2
 
-# Updated list of valid seal types with production time per unit (minutes)
 SEAL_PRODUCTION_TIMES = {
     'Standard Hard': 6,
     'Standard Soft': 5,
@@ -17,7 +16,6 @@ SEAL_PRODUCTION_TIMES = {
 VALID_SEAL_TYPES = list(SEAL_PRODUCTION_TIMES.keys())
 
 def load_average_times_from_db():
-    """Fetch average production time per unit from PostgreSQL."""
     avg_times = {}
     try:
         dbname = st.secrets["postgres"].get("dbname", st.secrets["postgres"].get("database"))
@@ -46,22 +44,29 @@ def load_average_times_from_db():
         st.warning(f"⚠️ Could not load dynamic production times from DB: {e}")
     return avg_times
 
-# ... (reszta kodu pozostaje bez zmian)
-
+def get_company_list_from_db():
+    companies = []
+    try:
+        dbname = st.secrets["postgres"].get("dbname", st.secrets["postgres"].get("database"))
+        conn = psycopg2.connect(
+            host=st.secrets["postgres"]["host"],
+            port=st.secrets["postgres"]["port"],
+            dbname=dbname,
+            user=st.secrets["postgres"]["user"],
+            password=st.secrets["postgres"]["password"]
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT company FROM orders WHERE company IS NOT NULL ORDER BY company;")
+        companies = [row[0] for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        st.warning(f"⚠️ Could not fetch company list from DB: {e}")
+    return companies
 
 def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
     total_minutes = 0
     days_processed = 0
-
-    if not isinstance(start_datetime, datetime.datetime):
-        st.error("❌ Invalid start date. Make sure it's a datetime object.")
-        return None
-    if not isinstance(work_minutes, int) or work_minutes <= 0:
-        st.error("❌ Working minutes must be a positive integer.")
-        return None
-    if seal_type not in VALID_SEAL_TYPES:
-        st.error("❌ Unknown seal type.")
-        return None
 
     while work_minutes > 0:
         if days_processed > max_days:
@@ -69,24 +74,19 @@ def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
             return None
 
         weekday = start_datetime.weekday()
-
         if weekday < 4:
             if seal_type in ['Standard Hard', 'Standard Soft'] and weekday in [0, 1, 2]:
                 work_day_minutes = 960
             else:
                 work_day_minutes = 510
         elif weekday == 4:
-            if seal_type in ['Standard Hard', 'Standard Soft']:
-                work_day_minutes = 450
-            else:
-                work_day_minutes = 0
+            work_day_minutes = 450 if seal_type in ['Standard Hard', 'Standard Soft'] else 0
         else:
             start_datetime += datetime.timedelta(days=1)
             days_processed += 1
             continue
 
         if work_minutes <= work_day_minutes:
-            total_minutes += work_minutes
             start_datetime += datetime.timedelta(minutes=work_minutes)
             break
         else:
@@ -101,19 +101,15 @@ def show_calculator():
     st.markdown("Add multiple production orders:")
 
     avg_times = load_average_times_from_db()
+    all_companies = get_company_list_from_db()
 
     if "orders" not in st.session_state:
         st.session_state.orders = []
 
-    existing_companies = list({order["company"] for order in st.session_state.orders})
-
     with st.form("add_order_form"):
-        company_input_mode = st.radio("Company input method", ["Select existing", "Enter new"], horizontal=True)
-        if company_input_mode == "Select existing" and existing_companies:
-            company = st.selectbox("Select company", existing_companies)
-        else:
-            company = st.text_input("Company name")
-
+        input_text = st.text_input("Type to search company")
+        filtered_companies = [c for c in all_companies if input_text.lower() in c.lower()] if input_text else all_companies
+        company = st.selectbox("Company name", filtered_companies) if filtered_companies else st.text_input("Company (manual)")
         seal_type = st.selectbox("Seal type", VALID_SEAL_TYPES)
         quantity = st.number_input("Quantity", min_value=1, step=1)
         start_date = st.date_input("Start date", datetime.date.today())
@@ -178,3 +174,5 @@ def show_calculator():
             st.markdown(f"**Total Quantity:** {df_results['Quantity'].sum()} units")
             st.markdown(f"**Total Production Time:** {df_results['Duration (h)'].sum():.2f} hours")
             st.markdown(f"**Average per Order:** {df_results['Duration (h)'].mean():.2f} hours")
+
+show_calculator()
