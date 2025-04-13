@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -11,17 +10,38 @@ def show_dashboard(df):
         return
 
     df["date"] = pd.to_datetime(df["date"])
-    today = pd.Timestamp.today().normalize()
-    this_week = today.isocalendar().week
     df["week"] = df["date"].dt.isocalendar().week
     df["year"] = df["date"].dt.year
+    df["weekday"] = df["date"].dt.day_name()
 
-    # 🧮 KPI
-    orders_today = df[df["date"] == today]
+    # ---------------------------
+    # 🔍 Filters
+    # ---------------------------
+    with st.sidebar:
+        st.header("📅 Filters")
+        date_range = st.date_input("Select date range", [df["date"].min(), df["date"].max()])
+        selected_operator = st.selectbox("Select operator", ["All"] + sorted(df["operator"].dropna().unique().tolist()))
+        selected_company = st.selectbox("Select company", ["All"] + sorted(df["company"].dropna().unique().tolist()))
+
+    filtered_df = df.copy()
+    if len(date_range) == 2:
+        filtered_df = filtered_df[(filtered_df["date"] >= pd.to_datetime(date_range[0])) & (filtered_df["date"] <= pd.to_datetime(date_range[1]))]
+    if selected_operator != "All":
+        filtered_df = filtered_df[filtered_df["operator"] == selected_operator]
+    if selected_company != "All":
+        filtered_df = filtered_df[filtered_df["company"] == selected_company]
+
+    # ---------------------------
+    # 🧮 KPIs
+    # ---------------------------
+    today = pd.Timestamp.today().normalize()
+    this_week = today.isocalendar().week
+
+    orders_today = filtered_df[filtered_df["date"] == today]
     seals_today = orders_today["seal_count"].sum()
     avg_time_today = (orders_today["production_time"] / orders_today["seal_count"]).mean()
 
-    orders_this_week = df[df["week"] == this_week]
+    orders_this_week = filtered_df[filtered_df["week"] == this_week]
     seals_this_week = orders_this_week["seal_count"].sum()
     avg_time_week = (orders_this_week["production_time"] / orders_this_week["seal_count"]).mean()
 
@@ -35,35 +55,54 @@ def show_dashboard(df):
     col5.metric("🧩 Seals This Week", int(seals_this_week))
     col6.metric("⏳ Avg. Time/Seal This Week", f"{avg_time_week:.1f} min" if pd.notnull(avg_time_week) else "N/A")
 
-    # 📈 Trend tygodniowy
-    weekly_trend = df.groupby(["year", "week"])["seal_count"].sum().reset_index()
+    # ---------------------------
+    # 📈 Weekly Production Trend
+    # ---------------------------
+    weekly_trend = filtered_df.groupby(["year", "week"])["seal_count"].sum().reset_index()
     weekly_trend["label"] = weekly_trend["year"].astype(str) + "-W" + weekly_trend["week"].astype(str)
-    fig = px.bar(weekly_trend, x="label", y="seal_count", title="📈 Weekly Seal Production Trend")
-    st.plotly_chart(fig, use_container_width=True)
+    fig_weekly = px.line(weekly_trend, x="label", y="seal_count", title="📈 Weekly Seal Production Trend", markers=True)
+    st.plotly_chart(fig_weekly, use_container_width=True)
 
-    # 🏆 Top firma / operator
-    st.subheader("🏆 Top Performers")
+    # ---------------------------
+    # 💡 Insights & Alerts
+    # ---------------------------
+    st.subheader("⚠️ Alerts")
+    overall_avg = (filtered_df["production_time"] / filtered_df["seal_count"]).mean()
+    if pd.notnull(avg_time_today) and avg_time_today > overall_avg * 1.3:
+        st.error("⚠️ Production time today is significantly higher than average!")
 
-    col7, col8 = st.columns(2)
+    # ---------------------------
+    # 📊 Best Day of the Week
+    # ---------------------------
+    st.subheader("📅 Best Production Day")
+    weekday_prod = filtered_df.groupby("weekday")["seal_count"].sum().reindex([
+        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    ])
+    best_day = weekday_prod.idxmax()
+    st.info(f"📌 Best day for production: **{best_day}**")
 
-    if "company" in df.columns:
-        top_company = df.groupby("company")["seal_count"].sum().reset_index().sort_values(by="seal_count", ascending=False).head(1)
-        if not top_company.empty:
-            col7.success(f"🏭 Top Company: {top_company.iloc[0]['company']} ({int(top_company.iloc[0]['seal_count'])} seals)")
+    fig_weekday = px.bar(weekday_prod.reset_index(), x="weekday", y="seal_count",
+                         title="📊 Total Production by Weekday", labels={"seal_count": "Seal Count"})
+    st.plotly_chart(fig_weekday, use_container_width=True)
 
-    if "operator" in df.columns:
-        top_operator = df.groupby("operator")["seal_count"].sum().reset_index().sort_values(by="seal_count", ascending=False).head(1)
-        if not top_operator.empty:
-            col8.info(f"👷 Top Operator: {top_operator.iloc[0]['operator']} ({int(top_operator.iloc[0]['seal_count'])} seals)")
+    # ---------------------------
+    # 🏆 Top Operator This Week
+    # ---------------------------
+    st.subheader("🏆 Top Operator This Week")
+    top_op = orders_this_week.groupby("operator")["seal_count"].sum().sort_values(ascending=False)
+    if not top_op.empty:
+        st.success(f"🥇 Top operator: **{top_op.idxmax()}** with **{top_op.max()}** seals")
 
-    # 🧹 Braki
-    st.subheader("⚠️ Missing Data Alerts")
-    missing = []
-    if df["seal_type"].isnull().any():
-        missing.append("Seal Type")
-    if df["production_time"].isnull().any():
-        missing.append("Production Time")
-    if missing:
-        st.error("Missing values in: " + ", ".join(missing))
-    else:
-        st.success("✅ No missing critical fields!")
+    fig_top_op = px.bar(top_op.reset_index(), x="operator", y="seal_count",
+                        title="🏗️ Operator Performance This Week", labels={"seal_count": "Seal Count"})
+    st.plotly_chart(fig_top_op, use_container_width=True)
+
+    # ---------------------------
+    # 📝 Notes
+    # ---------------------------
+    st.subheader("📝 Notes")
+    user_notes = st.text_area("Add your notes for today:", "")
+    if user_notes:
+        st.write("✅ Note saved (not persistent):")
+        st.info(user_notes)
+
