@@ -32,7 +32,7 @@ def load_average_times_from_db():
         query = """
             SELECT company, seal_type,
                    AVG(EXTRACT(EPOCH FROM (end_time - start_time))/60.0/quantity) AS avg_time_per_unit
-              FROM production_orders
+              FROM orders
              WHERE quantity > 0 AND end_time IS NOT NULL AND start_time IS NOT NULL
              GROUP BY company, seal_type;
         """
@@ -45,6 +45,9 @@ def load_average_times_from_db():
     except Exception as e:
         st.warning(f"⚠️ Could not load dynamic production times from DB: {e}")
     return avg_times
+
+# ... (reszta kodu pozostaje bez zmian)
+
 
 def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
     total_minutes = 0
