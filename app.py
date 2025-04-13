@@ -20,6 +20,9 @@ def main():
     role = st.session_state.get("role", "").lower()  # bezpieczne pobranie roli
 
     st.sidebar.title("Navigation")
+if st.sidebar.button("🔓 Wyloguj się"):
+    st.session_state.clear()
+    st.experimental_rerun()
     role = st.session_state.get("role", "").lower()  # bezpieczne pobranie roli
 
     pages = ["Order Panel", "Charts", "Dashboard", "Edit Orders", "Analysis", "Calculator"]
