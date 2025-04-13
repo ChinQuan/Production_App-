@@ -61,3 +61,46 @@ def show_charts(df):
     fig_week = px.bar(weekly_prod, x="week", y="seal_count",
                       title="📅 Weekly Seal Production", text_auto=True)
     st.plotly_chart(fig_week, use_container_width=True)
+
+
+    # ---------------------------
+    # 📊 Additional Charts Section
+    # ---------------------------
+
+    st.subheader("📦 Seal Type Distribution")
+    if "seal_type" in df.columns:
+        seal_by_type = df.groupby("seal_type")["seal_count"].sum().reset_index()
+        fig3 = px.bar(seal_by_type, x="seal_type", y="seal_count",
+                      title="📦 Total Seal Count by Type",
+                      labels={"seal_type": "Seal Type", "seal_count": "Seal Count"})
+        st.plotly_chart(fig3, use_container_width=True)
+
+    st.subheader("👷‍♂️ Operator Performance")
+    if "operator" in df.columns:
+        seal_by_operator = df.groupby("operator")["seal_count"].sum().reset_index()
+        fig4 = px.bar(seal_by_operator, x="operator", y="seal_count",
+                      title="👷‍♂️ Total Seal Count by Operator",
+                      labels={"operator": "Operator", "seal_count": "Seal Count"})
+        st.plotly_chart(fig4, use_container_width=True)
+
+    st.subheader("⏱️ Average Production Time")
+    if "production_time" in df.columns:
+        df["production_time"] = pd.to_numeric(df["production_time"], errors="coerce")
+        avg_time = df["production_time"].mean()
+        st.metric(label="⏱️ Average Production Time (All Orders)", value=f"{avg_time:.2f} min")
+
+        avg_time_by_company = df.groupby("company")["production_time"].mean().reset_index()
+        fig5 = px.bar(avg_time_by_company, x="company", y="production_time",
+                      title="⏱️ Avg Production Time by Company",
+                      labels={"production_time": "Avg Time (min)", "company": "Company"})
+        st.plotly_chart(fig5, use_container_width=True)
+
+    st.subheader("📅 Average Production by Weekday")
+    df["weekday"] = pd.to_datetime(df["date"]).dt.day_name()
+    weekday_avg = df.groupby("weekday")["seal_count"].mean().reindex([
+        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    ]).reset_index()
+    fig6 = px.bar(weekday_avg, x="weekday", y="seal_count",
+                  title="📅 Average Seal Count by Weekday",
+                  labels={"seal_count": "Average Seal Count", "weekday": "Day of Week"})
+    st.plotly_chart(fig6, use_container_width=True)
