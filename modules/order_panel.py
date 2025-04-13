@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from modules.database import insert_order, get_orders_df
+from modules.database import insert_order
 
 def show_order_panel():
     st.title("📥 Order Panel")
@@ -10,58 +10,64 @@ def show_order_panel():
 
     with col1:
         st.subheader("➕ Add New Completed Order")
+
         with st.form("order_panel_form"):
             date = st.date_input("📅 Production Date", value=datetime.today())
             company = st.text_input("🏢 Company Name")
             operator = st.text_input("👷 Operator")
-            seal_type = st.selectbox("🧷 Seal Type", ["Standard Hard", "Standard Soft", "Custom"])
+            seal_type = st.selectbox("🧷 Seal Type", [
+                "Standard Hard", "Standard Soft", "Custom",
+                "Custom Soft", "Custom Hard", "V-Rings"
+            ])
             profile = st.text_input("📄 Enter Seal Profile (optional)")
-            seal_count = st.number_input("🔢 Number of Seals", min_value=0, step=1)
+            seal_count = st.number_input("🔢 Ordered Quantity", min_value=1, step=1)
+
+            is_stack = st.checkbox("🧱 This is a stack (one order = multiple items)")
+            stack_size = 1
+            if is_stack:
+                stack_size = st.number_input("🔢 Items per Stack", min_value=1, step=1, value=1)
+
             production_time = st.number_input("⏱️ Production Time (Minutes)", min_value=0.0, step=1.0)
+            notes = st.text_area("📝 Additional Notes (optional)")
 
             submitted = st.form_submit_button("✅ Submit Order")
+
             if submitted:
-                new_order = {
-                    "date": date,
-                    "company": company,
-                    "operator": operator,
-                    "seal_type": seal_type,
-                    "profile": profile,
-                    "seal_count": seal_count,
-                    "production_time": production_time
-                }
-                try:
-                    insert_order(new_order)
-                    st.success("✅ Order added successfully!")
-                except Exception as e:
-                    st.error(f"❌ Failed to add order:\n{e}")
-                finally:
-                    # Możesz dodać kod czyszczący, jeśli jest to konieczne po wykonaniu try-except
-                    pass
+                # Walidacja
+                errors = []
+                if not company:
+                    errors.append("❗ Company name is required.")
+                if not operator:
+                    errors.append("❗ Operator name is required.")
+                if seal_count <= 0:
+                    errors.append("❗ Seal count must be greater than zero.")
+                if production_time <= 0:
+                    st.warning("⚠️ Production time is zero.")
 
-    with col2:
-        st.subheader("📋 Current Production Orders")
-        
-        # Wczytanie danych
-        df = get_orders_df()
+                if errors:
+                    for e in errors:
+                        st.error(e)
+                else:
+                    physical_count = seal_count * stack_size
+                    new_order = {
+                        "date": date,
+                        "company": company,
+                        "operator": operator,
+                        "seal_type": seal_type,
+                        "profile": profile,
+                        "seal_count": physical_count,
+                        "production_time": production_time,
+                        "notes": notes
+                    }
 
-        # Dodanie niestandardowego CSS w celu ustawienia szerokości kolumn
-        st.markdown("""
-            <style>
-                .stDataFrame {
-                    overflow-x: auto;
-                }
-                .stDataFrame table {
-                    width: 100%;
-                    table-layout: fixed;
-                }
-                .stDataFrame th, .stDataFrame td {
-                    padding: 12px;
-                    text-align: center;
-                    min-width: 150px; /* Zwiększ szerokość kolumn */
-                }
-            </style>
-        """, unsafe_allow_html=True)
+                    # Podsumowanie
+                    st.subheader("🧾 Summary Before Saving")
+                    summary_df = pd.DataFrame([new_order])
+                    st.dataframe(summary_df)
 
-        # Wyświetlanie tabeli
-        st.dataframe(df, use_container_width=True)
+                    if st.button("💾 Confirm & Save Order"):
+                        try:
+                            insert_order(new_order)
+                            st.success("✅ Order added successfully!")
+                        except Exception as e:
+                            st.error(f"❌ Failed to save order: {e}")
