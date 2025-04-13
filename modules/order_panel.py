@@ -71,8 +71,9 @@ def show_order_panel():
         if not df.empty:
             df["date"] = pd.to_datetime(df["date"])
             latest_orders = df.sort_values("date", ascending=False).head(10)
-            st.dataframe(latest_orders.reset_index(drop=True), use_container_width=True)
+            st.table(latest_orders.reset_index(drop=True))
         else:
             st.info("No orders available.")
     except Exception as e:
         st.error(f"Failed to load recent orders: {e}")
+
