@@ -68,10 +68,10 @@ def show_order_panel():
     st.subheader("📋 Recently Added Orders")
     try:
         df = get_orders_df()
-        df['date'] = pd.to_datetime(df['date']).dt.date
+        df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
         if not df.empty:
             df["date"] = pd.to_datetime(df["date"])
-            latest_orders = df.sort_values("date", ascending=False).head(10)
+            latest_orders = df.sort_values("date", ascending=False).head(10).reset_index(drop=True)
             st.dataframe(latest_orders, use_container_width=True)
         else:
             st.info("No orders available.")
