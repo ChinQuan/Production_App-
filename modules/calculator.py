@@ -2,6 +2,11 @@ import streamlit as st
 import pandas as pd
 import datetime
 
+# Updated list of valid seal types
+VALID_SEAL_TYPES = [
+    'Standard Hard', 'Standard Soft', 'Custom', 'Custom Soft', 'Custom Hard', 'V-Rings'
+]
+
 def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
     """
     Calculates the end date based on working minutes and seal type.
@@ -17,7 +22,7 @@ def add_work_minutes(start_datetime, work_minutes, seal_type, max_days=365):
     if not isinstance(work_minutes, int) or work_minutes <= 0:
         st.error("❌ Working minutes must be a positive integer.")
         return None
-    if seal_type not in ['Standard Hard', 'Standard Soft', 'Express']:
+    if seal_type not in VALID_SEAL_TYPES:
         st.error("❌ Unknown seal type.")
         return None
 
@@ -66,7 +71,7 @@ def show_calculator():
 
     with st.form("add_order_form"):
         company = st.text_input("Company name")
-        seal_type = st.selectbox("Seal type", ['Standard Hard', 'Standard Soft', 'Express'], key="seal_type")
+        seal_type = st.selectbox("Seal type", VALID_SEAL_TYPES, key="seal_type")
         quantity = st.number_input("Quantity", min_value=1, step=1, key="quantity")
         start_date = st.date_input("Start date", datetime.date.today(), key="start_date")
         start_time = st.time_input("Start time", datetime.time(8, 0), key="start_time")
