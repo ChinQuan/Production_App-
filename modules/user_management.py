@@ -1,59 +1,44 @@
 import streamlit as st
-from modules.login import login
-from modules.order_panel import show_order_panel
-from modules.charts import show_charts
-from modules.dashboard import show_dashboard
-from modules.user_management import show_user_panel
-from modules.database import get_orders_df
-from modules.analysis import calculate_average_time
-from modules.calculator import show_calculator
-from modules.edit_orders import show_edit_orders
+from modules.database import get_all_users, update_user, delete_user, create_user
 
-def main():
-    # Debug:
-    # st.sidebar.write("🧠 Debug:", st.session_state)
+def show_user_panel():
+    st.title("🧑‍💼 User Management Panel")
 
-    if not st.session_state.get("username"):
-        login()
-        return
+    users = get_all_users()
+    st.write("🔍 DEBUG: Loaded users:", users)
 
-    role = st.session_state.get("role", "guest")
+    st.subheader("👥 Existing Users")
+    for user in users:
+        with st.expander(f"{user[1]} ({user[2]})"):
+            role_options = ["admin", "user"]
+            current_role = user[2].lower()
+            index = role_options.index(current_role) if current_role in role_options else 0
+            new_role = st.selectbox(f"Role for {user[1]}", role_options, index=index, key=f"role_{user[0]}")
+            new_password = st.text_input(f"New password for {user[1]} (leave empty to keep current)", type="password", key=f"pass_{user[0]}")
 
-    st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", [
-        "Order Panel",
-        "Charts",
-        "Dashboard",
-        "Edit Orders",
-        "User Management",
-        "Analysis",
-        "Calculator"
-    ])
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button(f"Update {user[1]}", key=f"update_{user[0]}"):
+                    success = update_user(user[0], new_role, new_password if new_password else None)
+                    if success:
+                        st.success(f"✅ User {user[1]} updated.")
+                        st.rerun()
+            with col2:
+                if st.button(f"Delete {user[1]}", key=f"delete_{user[0]}"):
+                    success = delete_user(user[0])
+                    if success:
+                        st.warning(f"🗑️ User {user[1]} deleted.")
+                        st.rerun()
 
-    if page == "Order Panel":
-        show_order_panel()
-
-    elif page == "Charts":
-        df = get_orders_df()
-        show_charts(df)
-
-    elif page == "Dashboard":
-        df = get_orders_df()
-        show_dashboard(df)
-
-    elif page == "Edit Orders":
-        df = get_orders_df()
-        show_edit_orders(df)
-
-    elif page == "User Management" and role == "admin":
-        show_user_panel()
-
-    elif page == "Analysis":
-        df = get_orders_df()
-        calculate_average_time(df)
-
-    elif page == "Calculator":
-        show_calculator()
-
-if __name__ == "__main__":
-    main()
+    st.subheader("➕ Add New User")
+    new_username = st.text_input("New Username")
+    new_user_password = st.text_input("New Password", type="password")
+    new_user_role = st.selectbox("Role", ["user", "admin"])
+    if st.button("Create User"):
+        if not new_username or not new_user_password:
+            st.error("❗ Please enter both username and password.")
+        else:
+            success = create_user(new_username, new_user_password, new_user_role)
+            if success:
+                st.success(f"✅ User {new_username} created.")
+                st.rerun()
