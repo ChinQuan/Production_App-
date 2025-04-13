@@ -145,7 +145,7 @@ def show_calculator():
             with col2:
                 if st.button(f"❌", key=f"remove_{i}"):
                     st.session_state.orders.pop(i)
-                    st.experimental_rerun()
+                    st.rerun()
 
         if st.button("Clear all orders"):
             st.session_state.orders = []
