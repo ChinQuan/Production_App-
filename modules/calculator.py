@@ -20,10 +20,11 @@ def load_average_times_from_db():
     """Fetch average production time per unit from PostgreSQL."""
     avg_times = {}
     try:
+        dbname = st.secrets["postgres"].get("dbname", st.secrets["postgres"].get("database"))
         conn = psycopg2.connect(
             host=st.secrets["postgres"]["host"],
             port=st.secrets["postgres"]["port"],
-            dbname=st.secrets["postgres"]["dbname"],
+            dbname=dbname,
             user=st.secrets["postgres"]["user"],
             password=st.secrets["postgres"]["password"]
         )
