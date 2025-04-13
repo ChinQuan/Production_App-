@@ -1,12 +1,4 @@
 import streamlit as st
-from modules.auth import login_form
-
-# Jeśli użytkownik nie jest zalogowany — pokaż formularz logowania
-if "username" not in st.session_state:
-    login_form()
-    st.stop()
-
-import streamlit as st
 from modules.login import login
 from modules.order_panel import show_order_panel
 from modules.charts import show_charts
@@ -28,9 +20,6 @@ def main():
     role = st.session_state.get("role", "").lower()  # bezpieczne pobranie roli
 
     st.sidebar.title("Navigation")
-if st.sidebar.button("🔓 Wyloguj się"):
-    st.session_state.clear()
-    st.experimental_rerun()
     role = st.session_state.get("role", "").lower()  # bezpieczne pobranie roli
 
     pages = ["Order Panel", "Charts", "Dashboard", "Edit Orders", "Analysis", "Calculator"]
