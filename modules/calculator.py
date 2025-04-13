@@ -69,8 +69,15 @@ def show_calculator():
     if "orders" not in st.session_state:
         st.session_state.orders = []
 
+    existing_companies = list({order["company"] for order in st.session_state.orders})
+
     with st.form("add_order_form"):
-        company = st.text_input("Company name")
+        company_input_mode = st.radio("Company input method", ["Select existing", "Enter new"], horizontal=True)
+        if company_input_mode == "Select existing" and existing_companies:
+            company = st.selectbox("Select company", existing_companies)
+        else:
+            company = st.text_input("Company name")
+
         seal_type = st.selectbox("Seal type", VALID_SEAL_TYPES, key="seal_type")
         quantity = st.number_input("Quantity", min_value=1, step=1, key="quantity")
         start_date = st.date_input("Start date", datetime.date.today(), key="start_date")
