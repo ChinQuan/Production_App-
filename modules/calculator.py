@@ -99,6 +99,10 @@ def show_calculator():
         df_orders = pd.DataFrame(st.session_state.orders)
         st.dataframe(df_orders)
 
+        if st.button("Clear all orders"):
+            st.session_state.orders = []
+            st.success("All orders have been cleared.")
+
         if st.button("Calculate End Dates"):
             results = []
             for order in st.session_state.orders:
