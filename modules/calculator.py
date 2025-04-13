@@ -31,9 +31,9 @@ def load_average_times_from_db():
         cursor = conn.cursor()
         query = """
             SELECT company, seal_type,
-                   AVG(EXTRACT(EPOCH FROM (end_time - start_time))/60.0/quantity) AS avg_time_per_unit
+                   AVG(production_time::float / NULLIF(seal_count, 0)) AS avg_time_per_unit
               FROM orders
-             WHERE quantity > 0 AND end_time IS NOT NULL AND start_time IS NOT NULL
+             WHERE seal_count > 0 AND production_time IS NOT NULL
              GROUP BY company, seal_type;
         """
         cursor.execute(query)
