@@ -5,7 +5,7 @@ def show_user_panel():
     st.title("🧑‍💼 User Management Panel")
 
     users = get_all_users()
-    st.write("🔍 DEBUG: Loaded users:", users)
+    #st.write("🔍 DEBUG: Loaded users:", users)
 
     st.subheader("👥 Existing Users")
     for user in users:
