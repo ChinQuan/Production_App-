@@ -5,7 +5,6 @@ from psycopg2.extras import RealDictCursor
 import bcrypt
 
 # 📥 Fetch orders data from the database
-@st.cache_data(ttl=300)
 def get_orders_df():
     config = st.secrets["postgres"]
 
