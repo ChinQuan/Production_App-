@@ -11,7 +11,7 @@ def show_order_panel():
     with st.form("order_panel_form"):
         date = st.date_input("📅 Production Date", value=datetime.today())
         company = st.text_input("🏢 Company Name")
-        operator = st.text_input("👷 Operator", value=st.session_state.get("user", ""), disabled=True)
+        operator = st.text_input("👷 Operator", value=st.session_state.get("username", ""), disabled=True)
         seal_type = st.selectbox("🧷 Seal Type", [
             "Standard Hard", "Standard Soft", "Custom",
             "Custom Soft", "Custom Hard", "V-Rings", "Special", "V-Rings"
