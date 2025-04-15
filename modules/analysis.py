@@ -102,21 +102,22 @@ def calculate_average_time(df):
     )
     st.table(company_df)
 
-    # By Operator
-    operators = filtered_df['operator'].unique()
+    # By Operator (case-insensitive grouping)
+    filtered_df['operator_normalized'] = filtered_df['operator'].str.lower()
+    grouped = filtered_df.groupby('operator_normalized')
+
     operator_times = {}
-
-    for operator in operators:
-        filtered_operator_df = filtered_df[filtered_df['operator'].str.lower() == operator.lower()]
-        total_time = filtered_operator_df['production_time'].sum()
-        total_seals = filtered_operator_df['seal_count'].sum()
-
+    for operator_norm, group in grouped:
+        total_time = group['production_time'].sum()
+        total_seals = group['seal_count'].sum()
         if total_seals > 0:
-            avg_time = (total_time / total_seals) * 60
-            seals_per_minute = 60 / avg_time if avg_time > 0 else 0
-            operator_times[operator] = (format_time(avg_time), seals_per_minute)
+            avg_time = total_time / total_seals
+            seals_per_minute = (total_seals / total_time) * 60 if total_time else 0
+            display_name = group['operator'].iloc[0]
+            operator_times[display_name] = (format_time(avg_time), seals_per_minute)
         else:
-            operator_times[operator] = (None, None)
+            display_name = group['operator'].iloc[0]
+            operator_times[display_name] = (None, None)
 
     st.subheader("📊 By Operator")
     operator_df = pd.DataFrame(
@@ -124,4 +125,3 @@ def calculate_average_time(df):
         columns=['Operator', 'Average Time per Seal', 'Seals Produced per Minute (UPM)']
     )
     st.table(operator_df)
-
