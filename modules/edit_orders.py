@@ -25,7 +25,7 @@ def show_edit_orders(df):
     if selected_date != "All":
         filtered_df = filtered_df[filtered_df["date"] == pd.to_datetime(selected_date).date()]
     if selected_company != "All":
-        filtered_df = filtered_df[filtered_df["company"] == selected_company]
+        filtered_df = filtered_df[filtered_df["company"].str.lower() == selected_company.lower()]
     if selected_operator != "All":
         filtered_df = filtered_df[filtered_df["operator"] == selected_operator]
 
