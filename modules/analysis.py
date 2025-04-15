@@ -107,7 +107,8 @@ def calculate_average_time(df):
     operator_times = {}
 
     for operator in operators:
-        filtered_operator_df = filtered_df[filtered_df['operator'] == operator]
+        filtered_company_df = filtered_df[filtered_df['company'].str.lower() == company.lower()]
+        filtered_operator_df = filtered_df[filtered_df['operator'].str.lower() == operator.lower()]
         total_time = filtered_operator_df['production_time'].sum()
         total_seals = filtered_operator_df['seal_count'].sum()
 
