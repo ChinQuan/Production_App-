@@ -22,8 +22,12 @@ def show_charts(df):
 
     # Total by company
     if "company" in df.columns:
-        seal_by_company = df.groupby("company")["seal_count"].sum().reset_index()
-        fig2 = px.bar(seal_by_company, x="company", y="seal_count",
+        df['company_normalized'] = df['company'].str.lower()
+seal_by_company = df.groupby('company_normalized')["seal_count"].sum().reset_index()
+first_names = df.groupby('company_normalized')['company'].first().reset_index()
+seal_by_company = seal_by_company.merge(first_names, on='company_normalized')
+seal_by_company = seal_by_company.rename(columns={'company': 'company_display'})
+        fig2 = px.bar(seal_by_company, x="company_display", y="seal_count",
                       title="🏢 Total Seal Production by Company", text_auto=True)
         st.plotly_chart(fig2, use_container_width=True)
 
@@ -90,7 +94,7 @@ def show_charts(df):
         st.metric(label="⏱️ Average Production Time (All Orders)", value=f"{avg_time:.2f} min")
 
         avg_time_by_company = df.groupby("company")["production_time"].mean().reset_index()
-        fig5 = px.bar(avg_time_by_company, x="company", y="production_time",
+        fig5 = px.bar(avg_time_by_company, x="company_display", y="production_time",
                       title="⏱️ Avg Production Time by Company",
                       labels={"production_time": "Avg Time (min)", "company": "Company"})
         st.plotly_chart(fig5, use_container_width=True)
@@ -104,3 +108,4 @@ def show_charts(df):
                   title="📅 Average Seal Count by Weekday",
                   labels={"seal_count": "Average Seal Count", "weekday": "Day of Week"})
     st.plotly_chart(fig6, use_container_width=True)
+
