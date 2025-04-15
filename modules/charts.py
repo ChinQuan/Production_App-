@@ -27,7 +27,7 @@ def show_charts(df):
         first_names = df.groupby('company_normalized')['company'].first().reset_index()
         seal_by_company = seal_by_company.merge(first_names, on='company_normalized')
         seal_by_company = seal_by_company.rename(columns={'company': 'company_display'})
-        fig2 = px.bar(seal_by_company, x="company", y="seal_count",
+        fig2 = px.bar(seal_by_company, x="company_display", y="seal_count",
                     title="🏢 Total Seal Production by Company", text_auto=True)
         st.plotly_chart(fig2, use_container_width=True)
 
