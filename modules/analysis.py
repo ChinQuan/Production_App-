@@ -11,6 +11,8 @@ def format_time(seconds):
         return f"{minutes} minute{'s' if minutes != 1 else ''} {remaining_seconds} seconds"
 
 def calculate_average_time(df):
+    # Convert production_time from minutes to seconds
+    df['production_time'] = df['production_time'] * 60
     st.header("⏳ Average Production Time Analysis")
 
     if df.empty:
