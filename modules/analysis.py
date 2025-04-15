@@ -68,7 +68,7 @@ def calculate_average_time(df):
         total_seals = filtered_type_df['seal_count'].sum()
 
         if total_seals > 0:
-            avg_time = (total_time / total_seals) * 60
+            avg_time = total_time / total_seals
             seals_per_minute = 60 / avg_time if avg_time > 0 else 0
             average_times[seal_type] = (format_time(avg_time), seals_per_minute)
         else:
@@ -128,4 +128,5 @@ def calculate_average_time(df):
         columns=['Operator', 'Average Time per Seal', 'Seals Produced per Minute (UPM)']
     )
     st.table(operator_df)
+
 
