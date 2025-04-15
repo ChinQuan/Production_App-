@@ -11,10 +11,10 @@ def show_order_panel():
     with st.form("order_panel_form"):
         date = st.date_input("📅 Production Date", value=datetime.today())
         company = st.text_input("🏢 Company Name")
-        operator = st.text_input("👷 Operator")
+        operator = st.text_input("👷 Operator", value=st.session_state.get("user", ""), disabled=True)
         seal_type = st.selectbox("🧷 Seal Type", [
             "Standard Hard", "Standard Soft", "Custom",
-            "Custom Soft", "Custom Hard", "V-Rings"
+            "Custom Soft", "Custom Hard", "V-Rings", "Special", "V-Rings"
         ])
         profile = st.text_input("📄 Enter Seal Profile (optional)")
         seal_count = st.number_input("🔢 Ordered Quantity", min_value=1, step=1)
@@ -76,3 +76,4 @@ def show_order_panel():
             st.info("No orders available.")
     except Exception as e:
         st.error(f"Failed to load recent orders: {e}")
+
