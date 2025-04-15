@@ -22,11 +22,11 @@ def show_charts(df):
 
     # Total by company
     if "company" in df.columns:
-                df['company_normalized'] = df['company'].str.lower()
-        seal_by_company = df.groupby('company_normalized')["seal_count"].sum().reset_index()
-        first_names = df.groupby('company_normalized')['company'].first().reset_index()
-        seal_by_company = seal_by_company.merge(first_names, on='company_normalized')
-        seal_by_company = seal_by_company.rename(columns={'company': 'company_display'})
+        df['company_normalized'] = df['company'].str.lower()
+seal_by_company = df.groupby('company_normalized')["seal_count"].sum().reset_index()
+first_names = df.groupby('company_normalized')['company'].first().reset_index()
+seal_by_company = seal_by_company.merge(first_names, on='company_normalized')
+seal_by_company = seal_by_company.rename(columns={'company': 'company_display'})
         fig2 = px.bar(seal_by_company, x="company", y="seal_count",
                       title="🏢 Total Seal Production by Company", text_auto=True)
         st.plotly_chart(fig2, use_container_width=True)
